@@ -2396,10 +2396,7 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <part name="M4" library="fdcanusb" deviceset="MOUNT" device="">
 <attribute name="POPULATE" value="0"/>
 </part>
-<part name="J1" library="mfconnectors" deviceset="USB" device="_MINI_RIGHT">
-<attribute name="HUOSEPART" value="YES"/>
-<attribute name="MPN" value="MF-CON-MICROUSB-RIGHT"/>
-</part>
+<part name="J1" library="mfconnectors" deviceset="USB" device="_MICRO_RIGHT" value="MF-CON-MICROUSB-RIGHT"/>
 <part name="U1" library="mficpower" deviceset="TLV702" device="33PDBVR" value="MF-REG-SOT235-3.3V-300mA"/>
 <part name="C1" library="mfpassives" deviceset="CAPACITOR_NP" device="_0603" value="1uF">
 <attribute name="HOUSEPART" value="YES"/>
