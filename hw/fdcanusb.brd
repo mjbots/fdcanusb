@@ -727,10 +727,18 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 </pass>
 </autorouter>
 <elements>
-<element name="M1" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="26" y="3"/>
-<element name="M2" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="26" y="29"/>
-<element name="M3" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="3" y="3" smashed="yes"/>
-<element name="M4" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="3" y="29"/>
+<element name="M1" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="26" y="3">
+<attribute name="POPULATE" value="0" x="26" y="3" size="1.778" layer="27" display="off"/>
+</element>
+<element name="M2" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="26" y="29">
+<attribute name="POPULATE" value="0" x="26" y="29" size="1.778" layer="27" display="off"/>
+</element>
+<element name="M3" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="3" y="3" smashed="yes">
+<attribute name="POPULATE" value="0" x="3" y="3" size="1.778" layer="27" display="off"/>
+</element>
+<element name="M4" library="fdcanusb" package="M2.5MOUNT" value="MOUNT" x="3" y="29">
+<attribute name="POPULATE" value="0" x="3" y="29" size="1.778" layer="27" display="off"/>
+</element>
 <element name="J1" library="mfconnectors" package="MINIUSB-RIGHT" value="" x="8" y="16" smashed="yes" rot="R270">
 <attribute name="MPN" value="MF-CON-MICROUSB-RIGHT" x="-26.29" y="-20.83" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="POPULATE" value="1" x="-26.29" y="-20.83" size="1.778" layer="27" rot="R270" display="off"/>
@@ -985,7 +993,7 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 <attribute name="NAME" x="28" y="24.3" size="0.6" layer="25" font="vector" ratio="10"/>
 </element>
 <element name="U4" library="fdcanusb" package="TLP3317" value="TLP3317" x="28" y="18.5" smashed="yes">
-<attribute name="MPN" value="TLP3317(TP15,F" x="28" y="18.5" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="TLP3317" x="28" y="18.5" size="1.778" layer="27" display="off"/>
 <attribute name="MF" value="TOSHIBA" x="28" y="18.5" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="28.3" y="16" size="0.6" layer="25" font="vector" ratio="10"/>
 <attribute name="POPULATE" value="1" x="28" y="18.5" size="1.778" layer="27" display="off"/>

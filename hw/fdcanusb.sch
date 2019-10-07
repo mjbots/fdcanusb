@@ -2381,10 +2381,18 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 </class>
 </classes>
 <parts>
-<part name="M1" library="fdcanusb" deviceset="MOUNT" device=""/>
-<part name="M2" library="fdcanusb" deviceset="MOUNT" device=""/>
-<part name="M3" library="fdcanusb" deviceset="MOUNT" device=""/>
-<part name="M4" library="fdcanusb" deviceset="MOUNT" device=""/>
+<part name="M1" library="fdcanusb" deviceset="MOUNT" device="">
+<attribute name="POPULATE" value="0"/>
+</part>
+<part name="M2" library="fdcanusb" deviceset="MOUNT" device="">
+<attribute name="POPULATE" value="0"/>
+</part>
+<part name="M3" library="fdcanusb" deviceset="MOUNT" device="">
+<attribute name="POPULATE" value="0"/>
+</part>
+<part name="M4" library="fdcanusb" deviceset="MOUNT" device="">
+<attribute name="POPULATE" value="0"/>
+</part>
 <part name="J1" library="mfconnectors" deviceset="USB" device="_MINI_RIGHT">
 <attribute name="HUOSEPART" value="YES"/>
 <attribute name="MPN" value="MF-CON-MICROUSB-RIGHT"/>
@@ -2508,6 +2516,7 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <attribute name="MPN" value="MF-RES-0805-100"/>
 </part>
 <part name="U4" library="fdcanusb" deviceset="TLP3317" device="">
+<attribute name="MPN" value="TLP3317"/>
 <attribute name="POPULATE" value="1"/>
 </part>
 <part name="+3V8" library="supply1" deviceset="+3V3" device=""/>
@@ -2544,10 +2553,18 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <text x="284.48" y="-88.9" size="7.62" layer="90">DEBUG</text>
 </plain>
 <instances>
-<instance part="M1" gate="G$1" x="25.4" y="22.86"/>
-<instance part="M2" gate="G$1" x="40.64" y="22.86"/>
-<instance part="M3" gate="G$1" x="55.88" y="22.86"/>
-<instance part="M4" gate="G$1" x="71.12" y="22.86"/>
+<instance part="M1" gate="G$1" x="25.4" y="22.86">
+<attribute name="POPULATE" x="25.4" y="22.86" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="M2" gate="G$1" x="40.64" y="22.86">
+<attribute name="POPULATE" x="40.64" y="22.86" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="M3" gate="G$1" x="55.88" y="22.86">
+<attribute name="POPULATE" x="55.88" y="22.86" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="M4" gate="G$1" x="71.12" y="22.86">
+<attribute name="POPULATE" x="71.12" y="22.86" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="J1" gate="G$1" x="132.08" y="-7.62"/>
 <instance part="U1" gate="G$1" x="193.04" y="30.48"/>
 <instance part="C1" gate="G$1" x="180.34" y="27.94"/>
