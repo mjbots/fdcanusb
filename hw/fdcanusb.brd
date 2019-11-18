@@ -914,7 +914,7 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 </element>
 <element name="J2" library="fdcanusb" package="F09H" value="" x="32.57" y="16.01" smashed="yes" rot="R270">
 <attribute name="OC_NEWARK" value="unknown" x="24.95" y="-13.2" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="MPN" value="A-DS 09 A/KG-T2S" x="24.95" y="-13.2" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="AE10968-ND" x="24.95" y="-13.2" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="MF" value="Assmann WSW Components" x="24.95" y="-13.2" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="24.95" y="-13.2" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="POPULATE" value="1" x="32.57" y="16.01" size="1.778" layer="27" rot="R270" display="off"/>

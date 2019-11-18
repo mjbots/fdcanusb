@@ -2479,7 +2479,7 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <part name="+3V6" library="supply1" deviceset="+3V3" device=""/>
 <part name="J2" library="fdcanusb" deviceset="F09" device="H">
 <attribute name="MF" value="Assmann WSW Components"/>
-<attribute name="MPN" value="A-DS 09 A/KG-T2S"/>
+<attribute name="MPN" value="AE10968-ND"/>
 <attribute name="POPULATE" value="1"/>
 </part>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
