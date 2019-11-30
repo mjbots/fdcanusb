@@ -20,6 +20,7 @@ mbed_binary(
     name = "fdcanusb",
     srcs = [
         "fdcanusb.cc",
+        "millisecond_timer.h",
     ],
 )
 
