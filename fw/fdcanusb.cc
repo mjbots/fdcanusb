@@ -15,12 +15,50 @@
 #include "mbed.h"
 #include "PeripheralPins.h"
 
+#include "mjlib/base/string_span.h"
+
+#include "mjlib/micro/command_manager.h"
+#include "mjlib/micro/persistent_config.h"
+
 #include "fw/millisecond_timer.h"
 
 extern const PinMap PinMap_CAN_TD[];
 extern const PinMap PinMap_CAN_RD[];
 
 namespace {
+namespace base = mjlib::base;
+namespace micro = mjlib::micro;
+
+class NullStream : public micro::AsyncStream {
+ public:
+  void AsyncReadSome(const base::string_span&,
+                     const micro::SizeCallback&) override {
+  }
+
+  void AsyncWriteSome(const std::string_view&,
+                      const micro::SizeCallback&) override {
+  }
+};
+
+class NullFlash : public micro::FlashInterface {
+ public:
+  Info GetInfo() override {
+    return {};
+  }
+
+  void Erase() override {
+  }
+
+  void Unlock() override {
+  }
+
+  void Lock() override {
+  }
+
+  void ProgramByte(char*, uint8_t) override {
+  }
+};
+
 constexpr uint32_t RoundUpDlc(size_t size) {
   if (size == 0) { return FDCAN_DLC_BYTES_0; }
   if (size == 1) { return FDCAN_DLC_BYTES_1; }
@@ -123,38 +161,6 @@ class FDCan {
             &can, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
       mbed_die();
     }
-
-#if 0
-    // Enter the initialization mode
-    can_->CCCR |= FDCAN_CCCR_INIT;
-
-    // Zero everything and enable register access.
-    can_->CCCR |= FDCAN_CCCR_CCE;
-
-    // Enable CAN-FD.
-    can_->CCCR |= FDCAN_CCCR_FDOE;
-
-    // TODO: query the pclk rate.
-    // const int pclk_rate = 42500000;
-
-    // CKDIV is used to dived the ABP clock
-
-    // Set standard bit timing in BTP.
-    can_->DBTP = 0;
-
-    // What is NBTP used for?
-
-    // Set fast bit timing in FBTP.
-
-    // Set Tx FIFO instead of Tx Queue.
-    // TXBC[TFQM] = 0
-
-
-    // Probably want tmitter delay compensation?  DBTP.TDC
-
-    // Need to check for restricted operation.  CCCR.ASM
-    // Need to check protocol status register PSR
-#endif
   }
 
   void Send(uint16_t dest_id,
@@ -237,6 +243,13 @@ int main(void) {
 
   fw::MillisecondTimer timer;
 
+  micro::SizedPool<12288> pool;
+  NullStream command_stream;
+  micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&command_stream);
+  micro::CommandManager command_manager(&pool, &command_stream, &write_stream);
+  NullFlash flash_interface;
+  micro::PersistentConfig persistent_config(pool, command_manager, flash_interface);
+
   // auto* const can1 = FDCAN1;
   uint8_t tx_data[16] = {0, 3, 7, 12, 18, 25, 33, 42,
                          1, 4, 8, 13, 19, 26, 34, 43};
@@ -263,5 +276,9 @@ int main(void) {
 extern "C" {
 void SysTick_Handler(void) {
   HAL_IncTick();
+}
+
+void abort() {
+  mbed_die();
 }
 }

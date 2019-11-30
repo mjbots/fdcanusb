@@ -22,6 +22,10 @@ mbed_binary(
         "fdcanusb.cc",
         "millisecond_timer.h",
     ],
+    deps = [
+        "@mjlib//mjlib/micro:command_manager",
+        "@mjlib//mjlib/micro:persistent_config",
+    ],
 )
 
 OCD = (
