@@ -19,10 +19,18 @@ load("@com_github_ARMmbed_mbed-os//:rules.bzl", "mbed_binary")
 mbed_binary(
     name = "fdcanusb",
     srcs = [
+        "error.h",
+        "error.cc",
         "fdcanusb.cc",
         "millisecond_timer.h",
+        "stm32_serial.h",
+        "stm32_serial.cc",
+        "stm32g4_async_uart.h",
+        "stm32g4_async_uart.cc",
     ],
     deps = [
+        "@mjlib//mjlib/micro:atomic_event_queue",
+        "@mjlib//mjlib/micro:callback_table",
         "@mjlib//mjlib/micro:command_manager",
         "@mjlib//mjlib/micro:persistent_config",
     ],

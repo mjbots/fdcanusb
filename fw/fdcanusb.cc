@@ -21,6 +21,7 @@
 #include "mjlib/micro/persistent_config.h"
 
 #include "fw/millisecond_timer.h"
+#include "fw/stm32g4_async_uart.h"
 
 extern const PinMap PinMap_CAN_TD[];
 extern const PinMap PinMap_CAN_RD[];
@@ -28,17 +29,6 @@ extern const PinMap PinMap_CAN_RD[];
 namespace {
 namespace base = mjlib::base;
 namespace micro = mjlib::micro;
-
-class NullStream : public micro::AsyncStream {
- public:
-  void AsyncReadSome(const base::string_span&,
-                     const micro::SizeCallback&) override {
-  }
-
-  void AsyncWriteSome(const std::string_view&,
-                      const micro::SizeCallback&) override {
-  }
-};
 
 class NullFlash : public micro::FlashInterface {
  public:
@@ -244,11 +234,24 @@ int main(void) {
   fw::MillisecondTimer timer;
 
   micro::SizedPool<12288> pool;
-  NullStream command_stream;
-  micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&command_stream);
-  micro::CommandManager command_manager(&pool, &command_stream, &write_stream);
+  fw::Stm32G4AsyncUart uart(
+      &pool,
+      &timer,
+      []() {
+        fw::Stm32G4AsyncUart::Options options;
+
+        options.tx = PA_2;
+        options.rx = PA_3;
+        options.baud_rate = 115200;
+
+        return options;
+      }());
+
+  micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&uart);
+  micro::CommandManager command_manager(&pool, &uart, &write_stream);
   NullFlash flash_interface;
-  micro::PersistentConfig persistent_config(pool, command_manager, flash_interface);
+  micro::PersistentConfig persistent_config(
+      pool, command_manager, flash_interface);
 
   // auto* const can1 = FDCAN1;
   uint8_t tx_data[16] = {0, 3, 7, 12, 18, 25, 33, 42,
@@ -260,8 +263,10 @@ int main(void) {
   while (true) {
     const uint32_t start = timer.read_ms();
     while (true) {
-      uint32_t now = timer.read_ms();
+      const uint32_t now = timer.read_ms();
       if (now - start > 1000) { break; }
+
+      uart.Poll();
 
       if (can.Poll(&rx_header, rx_data)) {
         g_led_value = !g_led_value;
