@@ -338,7 +338,16 @@ class Stm32G4AsyncUart::Impl {
 
   void AsyncReadSome(const base::string_span& data,
                      const micro::SizeCallback& callback) {
-    // do nothing for now
+    MJ_ASSERT(!current_read_callback_);
+    current_read_callback_ = callback;
+    current_read_bytes_ = data.size();
+
+    if (HAL_UART_Receive_DMA(
+            &uart_,
+            reinterpret_cast<uint8_t*>(data.data()),
+            data.size()) != HAL_OK) {
+      mbed_die();
+    }
   }
 
   void AsyncWriteSome(const string_view& data,
@@ -357,10 +366,18 @@ class Stm32G4AsyncUart::Impl {
 
   void Poll() {
     if (current_write_callback_) {
-      if (HAL_UART_GetState(&uart_) == HAL_UART_STATE_READY) {
+      if (uart_.gState == HAL_UART_STATE_READY) {
         auto copy = current_write_callback_;
         current_write_callback_ = {};
         copy(micro::error_code(), current_write_bytes_);
+      }
+    }
+    if (current_read_callback_) {
+      if (uart_.RxState == HAL_UART_STATE_READY) {
+        auto copy = current_read_callback_;
+        current_read_callback_ = {};
+        copy(micro::error_code(),
+             current_read_bytes_ - hdma_usart_rx_.Instance->CNDTR);
       }
     }
   }
@@ -371,6 +388,9 @@ class Stm32G4AsyncUart::Impl {
 
   micro::SizeCallback current_write_callback_;
   ssize_t current_write_bytes_ = 0;
+
+  micro::SizeCallback current_read_callback_;
+  ssize_t current_read_bytes_ = 0;
 
   micro::CallbackTable::Callback tx_callback_;
   micro::CallbackTable::Callback rx_callback_;
