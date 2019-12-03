@@ -124,6 +124,94 @@ IRQn_Type GetUsartIrq(USART_TypeDef* uart) {
   return {};
 }
 
+void EnableUart(USART_TypeDef* uart) {
+#if defined (USART1_BASE)
+  if (uart == USART1) {
+    __HAL_RCC_USART1_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (USART2_BASE)
+  if (uart == USART2) {
+    __HAL_RCC_USART2_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (USART3_BASE)
+  if (uart == USART3) {
+    __HAL_RCC_USART3_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (UART4_BASE)
+  if (uart == UART4) {
+    __HAL_RCC_UART4_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (USART4_BASE)
+  if (uart == USART4) {
+    __HAL_RCC_USART4_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (UART5_BASE)
+  if (uart == UART5) {
+    __HAL_RCC_UART5_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (USART5_BASE)
+  if (uart == USART5) {
+    __HAL_RCC_USART5_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (USART6_BASE)
+  if (uart == USART6) {
+    __HAL_RCC_USART6_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (UART7_BASE)
+  if (uart == UART7) {
+    __HAL_RCC_UART7_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (USART7_BASE)
+  if (uart == USART7) {
+    __HAL_RCC_USART7_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (UART8_BASE)
+  if (uart == UART8) {
+    __HAL_RCC_UART8_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (USART8_BASE)
+  if (uart == USART8) {
+    __HAL_RCC_USART8_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (UART9_BASE)
+  if (uart == UART9) {
+    __HAL_RCC_UART9_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (UART10_BASE)
+  if (uart == UART10) {
+    __HAL_RCC_UART10_CLK_ENABLE();
+    return;
+  }
+#endif
+  mbed_die();
+}
+
 }
 
 class Stm32G4AsyncUart::Impl {
@@ -150,7 +238,6 @@ class Stm32G4AsyncUart::Impl {
       return reinterpret_cast<USART_TypeDef*>(pinmap_merge(uart_tx, uart_rx));
     }();
 
-    /* USART2_RX Init */
     hdma_usart_rx_.Instance = options.rx_dma;
     hdma_usart_rx_.Init.Request = GetUartRxRequest(uart);
     hdma_usart_rx_.Init.Direction = DMA_PERIPH_TO_MEMORY;
@@ -167,7 +254,6 @@ class Stm32G4AsyncUart::Impl {
 
     __HAL_LINKDMA(&uart_,hdmarx,hdma_usart_rx_);
 
-    /* USART2_TX Init */
     hdma_usart_tx_.Instance = options.tx_dma;
     hdma_usart_tx_.Init.Request = GetUartTxRequest(uart);
     hdma_usart_tx_.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -182,10 +268,9 @@ class Stm32G4AsyncUart::Impl {
       mbed_die();
     }
 
-     __HAL_LINKDMA(&uart_,hdmatx,hdma_usart_tx_);
+    __HAL_LINKDMA(&uart_,hdmatx,hdma_usart_tx_);
 
-    /* USART2 interrupt Init */
-    __HAL_RCC_USART2_CLK_ENABLE();
+    EnableUart(uart);
 
     uart_.Instance = uart;
     uart_.Init.BaudRate = options.baud_rate;
