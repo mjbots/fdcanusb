@@ -20,219 +20,131 @@
 #include "fw/error.h"
 #include "fw/stm32_serial.h"
 
-#define DMA_GET_SR(__HANDLE__) ((reinterpret_cast<uint32_t>((__HANDLE__)->Instance) > (reinterpret_cast<uint32_t>(DMA1_Channel8))) ? (DMA2->ISR) : (DMA1->ISR))
-
 namespace base = mjlib::base;
 namespace micro = mjlib::micro;
 
 namespace fw {
-namespace {
-uint32_t GetUartTxRequest(USART_TypeDef* uart) {
-  switch (reinterpret_cast<uint32_t>(uart)) {
-    case UART_1: return DMA_REQUEST_USART1_TX;
-    case UART_2: return DMA_REQUEST_USART2_TX;
-    case UART_3: return DMA_REQUEST_USART3_TX;
-    case UART_4: return DMA_REQUEST_UART4_TX;
-#if defined (UART5)
-    case UART_5: return DMA_REQUEST_UART5_TX;
-#endif
-  }
-  mbed_die();
-  return 0;
-}
-
-uint32_t GetUartRxRequest(USART_TypeDef* uart) {
-  switch (reinterpret_cast<uint32_t>(uart)) {
-    case UART_1: return DMA_REQUEST_USART1_RX;
-    case UART_2: return DMA_REQUEST_USART2_RX;
-    case UART_3: return DMA_REQUEST_USART3_RX;
-    case UART_4: return DMA_REQUEST_UART4_RX;
-#if defined (UART5)
-    case UART_5: return DMA_REQUEST_UART5_RX;
-#endif
-  }
-  mbed_die();
-  return 0;
-}
-
-IRQn_Type GetDmaIrq(DMA_Channel_TypeDef* dma) {
-  if (dma == DMA1_Channel1) { return DMA1_Channel1_IRQn; }
-  if (dma == DMA1_Channel2) { return DMA1_Channel2_IRQn; }
-  if (dma == DMA1_Channel3) { return DMA1_Channel3_IRQn; }
-  if (dma == DMA1_Channel4) { return DMA1_Channel4_IRQn; }
-  if (dma == DMA1_Channel5) { return DMA1_Channel5_IRQn; }
-  if (dma == DMA1_Channel6) { return DMA1_Channel6_IRQn; }
-  if (dma == DMA1_Channel7) { return DMA1_Channel7_IRQn; }
-  if (dma == DMA1_Channel8) { return DMA1_Channel8_IRQn; }
-
-  if (dma == DMA2_Channel1) { return DMA2_Channel1_IRQn; }
-  if (dma == DMA2_Channel2) { return DMA2_Channel2_IRQn; }
-  if (dma == DMA2_Channel3) { return DMA2_Channel3_IRQn; }
-  if (dma == DMA2_Channel4) { return DMA2_Channel4_IRQn; }
-  if (dma == DMA2_Channel5) { return DMA2_Channel5_IRQn; }
-  if (dma == DMA2_Channel6) { return DMA2_Channel6_IRQn; }
-  if (dma == DMA2_Channel7) { return DMA2_Channel7_IRQn; }
-  if (dma == DMA2_Channel8) { return DMA2_Channel8_IRQn; }
-
-  mbed_die();
-}
-
-IRQn_Type FindUartRxIrq(USART_TypeDef* uart) {
-  switch(reinterpret_cast<uint32_t>(uart)) {
-#if defined (USART1_BASE)
-    case UART_1: return USART1_IRQn;
-#endif
-#if defined (USART2_BASE)
-    case UART_2: return USART2_IRQn;
-#endif
-#if defined (USART3_BASE)
-    case UART_3: return USART3_IRQn;
-#endif
-#if defined (UART4_BASE)
-    case UART_4: return UART4_IRQn;
-#endif
-#if defined (USART4_BASE)
-    case UART_4: return USART4_IRQn;
-#endif
-#if defined (UART5_BASE)
-    case UART_5: return UART5_IRQn;
-#endif
-#if defined (USART5_BASE)
-    case UART_5: return USART5_IRQn;
-#endif
-#if defined (USART6_BASE)
-    case UART_6: return USART6_IRQn;
-#endif
-#if defined (UART7_BASE)
-    case UART_7: return UART7_IRQn;
-#endif
-#if defined (USART7_BASE)
-    case UART_7: return USART7_IRQn;
-#endif
-#if defined (UART8_BASE)
-    case UART_8: return UART8_IRQn;
-#endif
-#if defined (USART8_BASE)
-    case UART_8: return USART8_IRQn;
-#endif
-#if defined (UART9_BASE)
-    case UART_9: return UART9_IRQn;
-#endif
-#if defined (UART10_BASE)
-    case UART_10: return UART10_IRQn;
-#endif
-  }
-  mbed_die();
-  return {};
-}
-}
 
 class Stm32G4AsyncUart::Impl {
  public:
-  Impl(micro::Pool* pool, MillisecondTimer* timer, const Options& options)
-      : timer_(timer),
-        options_(options),
-        stm32_serial_([&]() {
-            Stm32Serial::Options s_options;
-            s_options.rx = options.rx;
-            s_options.tx = options.tx;
-            s_options.baud_rate = options.baud_rate;
-            return s_options;
-          }()),
-        dir_(options.dir, 0) {
+  Impl(const Options& options) {
 
-    __HAL_RCC_DMA1_CLK_ENABLE();
-    __HAL_RCC_DMA2_CLK_ENABLE();
     __HAL_RCC_DMAMUX1_CLK_ENABLE();
+    __HAL_RCC_DMA1_CLK_ENABLE();
 
-    uart_ = stm32_serial_.uart();
+    /* DMA interrupt init */
+    /* DMA1_Channel1_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+    /* DMA1_Channel2_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
-    MJ_ASSERT(uart_ != nullptr);
-    uart_rx_irq_ = FindUartRxIrq(uart_);
+    __HAL_RCC_GPIOA_CLK_ENABLE();
 
-    if (options.tx != NC) {
-      tx_dma_.Instance = options_.tx_dma;
-      tx_dma_.Init.Request = GetUartTxRequest(uart_);
-      tx_dma_.Init.Direction = DMA_MEMORY_TO_PERIPH;
-      tx_dma_.Init.PeriphInc = DMA_PINC_DISABLE;
-      tx_dma_.Init.MemInc = DMA_MINC_ENABLE;
-      tx_dma_.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-      tx_dma_.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-      tx_dma_.Init.Mode = DMA_NORMAL;
-      tx_dma_.Init.Priority = DMA_PRIORITY_LOW;
-      HAL_DMA_Init(&tx_dma_);
+    GPIO_InitTypeDef GPIO_InitStruct = {};
+    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-      tx_callback_ = micro::CallbackTable::MakeFunction([this]() {
-          this->IRQ_HandleTransmit();
-        });
-
-      const auto tx_irq = GetDmaIrq(options.tx_dma);
-
-      NVIC_SetVector(
-          tx_irq, reinterpret_cast<uint32_t>(tx_callback_.raw_function));
-      HAL_NVIC_SetPriority(tx_irq, 5, 0);
-
-      tx_dma_flags_.gif = __HAL_DMA_GET_GI_FLAG_INDEX(&tx_dma_);
-      tx_dma_flags_.te = __HAL_DMA_GET_TE_FLAG_INDEX(&tx_dma_);
-      tx_dma_flags_.ht = __HAL_DMA_GET_HT_FLAG_INDEX(&tx_dma_);
-      tx_dma_flags_.tc = __HAL_DMA_GET_TC_FLAG_INDEX(&tx_dma_);
-
-      NVIC_EnableIRQ(tx_irq);
+    /* USART2 DMA Init */
+    /* USART2_RX Init */
+    hdma_usart1_rx_.Instance = DMA1_Channel2;
+    hdma_usart1_rx_.Init.Request = DMA_REQUEST_USART2_RX;
+    hdma_usart1_rx_.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart1_rx_.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart1_rx_.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart1_rx_.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart1_rx_.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart1_rx_.Init.Mode = DMA_NORMAL;
+    hdma_usart1_rx_.Init.Priority = DMA_PRIORITY_HIGH;
+    if (HAL_DMA_Init(&hdma_usart1_rx_) != HAL_OK)
+    {
+      mbed_die();
     }
 
-    if (options.rx != NC) {
-      rx_dma_.Instance = options_.rx_dma;
-      rx_dma_.Init.Request = GetUartRxRequest(uart_);
-      rx_dma_.Init.Direction = DMA_PERIPH_TO_MEMORY;
-      rx_dma_.Init.PeriphInc = DMA_PINC_DISABLE;
-      rx_dma_.Init.MemInc = DMA_MINC_ENABLE;
-      rx_dma_.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-      rx_dma_.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-      rx_dma_.Init.Mode = DMA_NORMAL;
-      rx_dma_.Init.Priority = DMA_PRIORITY_LOW;
-      HAL_DMA_Init(&rx_dma_);
+    __HAL_LINKDMA(&uart_,hdmarx,hdma_usart1_rx_);
 
-      rx_callback_ =  micro::CallbackTable::MakeFunction([this]() {
-          this->IRQ_HandleReceive();
-        });
-
-      const auto rx_irq = GetDmaIrq(options.rx_dma);
-      NVIC_SetVector(
-          rx_irq, reinterpret_cast<uint32_t>(rx_callback_.raw_function));
-      HAL_NVIC_SetPriority(rx_irq, 5, 0);
-
-      // Notify when there are idle times on the bus.
-      uart_->CR1 |= USART_CR1_IDLEIE;
-
-      uart_callback_ = micro::CallbackTable::MakeFunction([this]() {
-          this->IRQ_HandleUart();
-        });
-      NVIC_SetVector(uart_rx_irq_,
-                     reinterpret_cast<uint32_t>(uart_callback_.raw_function));
-      HAL_NVIC_SetPriority(uart_rx_irq_, 5, 0);
-
-      rx_dma_flags_.gif = __HAL_DMA_GET_GI_FLAG_INDEX(&rx_dma_);
-      rx_dma_flags_.te = __HAL_DMA_GET_TE_FLAG_INDEX(&rx_dma_);
-      rx_dma_flags_.ht = __HAL_DMA_GET_HT_FLAG_INDEX(&rx_dma_);
-      rx_dma_flags_.tc = __HAL_DMA_GET_TC_FLAG_INDEX(&rx_dma_);
-
-      NVIC_EnableIRQ(rx_irq);
-      NVIC_EnableIRQ(uart_rx_irq_);
+    /* USART2_TX Init */
+    hdma_usart1_tx_.Instance = DMA1_Channel1;
+    hdma_usart1_tx_.Init.Request = DMA_REQUEST_USART2_TX;
+    hdma_usart1_tx_.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart1_tx_.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart1_tx_.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart1_tx_.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart1_tx_.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart1_tx_.Init.Mode = DMA_NORMAL;
+    hdma_usart1_tx_.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_usart1_tx_) != HAL_OK)
+    {
+      mbed_die();
     }
+
+     __HAL_LINKDMA(&uart_,hdmatx,hdma_usart1_tx_);
+
+    /* USART2 interrupt Init */
+    HAL_NVIC_SetPriority(USART2_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
+
+    __HAL_RCC_USART2_CLK_ENABLE();
+
+    uart_.Instance = USART2;
+    uart_.Init.BaudRate = options.baud_rate;
+    uart_.Init.WordLength = UART_WORDLENGTH_8B;
+    uart_.Init.StopBits = UART_STOPBITS_1;
+    uart_.Init.Parity = UART_PARITY_NONE;
+    uart_.Init.Mode = UART_MODE_TX_RX;
+    uart_.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    uart_.Init.OverSampling = UART_OVERSAMPLING_16;
+    uart_.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    uart_.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+    uart_.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&uart_) != HAL_OK)
+    {
+      mbed_die();
+    }
+    if (HAL_UARTEx_SetTxFifoThreshold(&uart_, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+    {
+      mbed_die();
+    }
+    if (HAL_UARTEx_SetRxFifoThreshold(&uart_, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+    {
+      mbed_die();
+    }
+    if (HAL_UARTEx_DisableFifoMode(&uart_) != HAL_OK)
+    {
+      mbed_die();
+    }
+
+    tx_callback_ = micro::CallbackTable::MakeFunction([this]() {
+        HAL_DMA_IRQHandler(&hdma_usart1_tx_);
+      });
+
+    rx_callback_ = micro::CallbackTable::MakeFunction([this]() {
+        HAL_DMA_IRQHandler(&hdma_usart1_rx_);
+      });
+
+    uart_callback_ = micro::CallbackTable::MakeFunction([this]() {
+        HAL_UART_IRQHandler(&uart_);
+      });
+
+    NVIC_SetVector(
+        DMA1_Channel1_IRQn,
+        reinterpret_cast<uint32_t>(tx_callback_.raw_function));
+    NVIC_SetVector(
+        DMA1_Channel2_IRQn,
+        reinterpret_cast<uint32_t>(rx_callback_.raw_function));
+    NVIC_SetVector(
+        USART2_IRQn,
+        reinterpret_cast<uint32_t>(uart_callback_.raw_function));
   }
 
   void AsyncReadSome(const base::string_span& data,
                      const micro::SizeCallback& callback) {
-    MJ_ASSERT(!current_read_callback_);
-    current_read_callback_ = callback;
-    current_read_bytes_ = data.size();
-    if (HAL_DMA_Start_IT(&rx_dma_, reinterpret_cast<uint32_t>(&(uart_->RDR)),
-                         reinterpret_cast<uint32_t>(data.data()),
-                         current_read_bytes_) != HAL_OK) {
-      mbed_die();
-    }
-
-    uart_->CR3 |= USART_CR3_DMAR;
+    // do nothing for now
   }
 
   void AsyncWriteSome(const string_view& data,
@@ -240,211 +152,41 @@ class Stm32G4AsyncUart::Impl {
     MJ_ASSERT(!current_write_callback_);
     current_write_callback_ = callback;
     current_write_bytes_ = data.size();
-    if (HAL_DMA_Start_IT(&tx_dma_, reinterpret_cast<uint32_t>(data.data()),
-                         reinterpret_cast<uint32_t>(&(uart_->TDR)),
-                         data.size() != HAL_OK)) {
+
+    if (HAL_UART_Transmit_DMA(
+            &uart_,
+            const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(data.data())),
+            data.size()) != HAL_OK) {
       mbed_die();
     }
-    uart_->ICR |= USART_ICR_TCCF;
-    uart_->CR3 |= USART_CR3_DMAT;
   }
 
-  void IRQ_HandleTransmit() {
-    const ssize_t amount_sent = current_write_bytes_ - tx_dma_.Instance->CNDTR;
-
-    const auto dma_sr = DMA_GET_SR(&tx_dma_);
-    const auto uart_sr = uart_->ISR;
-    (void) uart_sr;
-
-    if (dma_sr & tx_dma_flags_.ht) {
-      __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.ht);
-      // Just ignore this.
-    }
-
-    if (dma_sr & tx_dma_flags_.gif) {
-      __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.gif);
-      // Ignore this too.
-    }
-
-    bool emit = false;
-    micro::error_code error;
-    if (dma_sr & tx_dma_flags_.te) {
-      __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.te);
-      error = errc::kDmaStreamTransferError;
-      emit = true;
-    }
-
-    if (dma_sr & tx_dma_flags_.tc) {
-      __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.tc);
-      error = {};
-      emit = true;
-    }
-
-    if (emit) {
-      // Have the UART stop requesting DMA.
-      uart_->CR3 &= ~(USART_CR3_DMAT);
-      if (HAL_DMA_Abort_IT(&tx_dma_) != HAL_OK) {
-        mbed_die();
+  void Poll() {
+    if (current_write_callback_) {
+      if (HAL_UART_GetState(&uart_) == HAL_UART_STATE_READY) {
+        auto copy = current_write_callback_;
+        current_write_callback_ = {};
+        copy(micro::error_code(), current_write_bytes_);
       }
-
-      event_queue_.Queue([this, error, amount_sent]() {
-          auto copy = current_write_callback_;
-
-          current_write_callback_ = {};
-          current_write_bytes_ = 0;
-
-          copy(error, amount_sent);
-        });
     }
   }
 
-  void IRQ_HandleReceive() {
-    // Process any error flags, then call the callback.
-
-    // Read the status register.
-    const auto dma_sr = DMA_GET_SR(&rx_dma_);
-    const auto uart_sr = uart_->ISR;
-    ssize_t bytes_read = 0;
-
-    if (dma_sr & rx_dma_flags_.ht) {
-      __HAL_DMA_CLEAR_FLAG(&rx_dma_, rx_dma_flags_.ht);
-      // otherwise ignore
-    }
-
-    if (dma_sr & rx_dma_flags_.gif) {
-      __HAL_DMA_CLEAR_FLAG(&rx_dma_, rx_dma_flags_.gif);
-      // otherwise ignore
-    }
-
-    bool emit = false;
-
-    if (dma_sr & rx_dma_flags_.te) {
-      emit = true;
-      // We had a transfer error.
-      pending_rx_error_ = [&]() {
-        if (uart_sr & USART_ISR_ORE) {
-          uart_->ICR |= USART_ICR_ORECF;
-          return errc::kUartOverrunError;
-        } else if (uart_sr & USART_ISR_FE) {
-          uart_->ICR |= USART_ICR_FECF;
-          return errc::kUartFramingError;
-        } else if (uart_sr & USART_ISR_NE) {
-          uart_->ICR |= USART_ICR_NECF;
-          return errc::kUartNoiseError;
-        } else if (uart_sr & USART_ISR_PE) {
-          uart_->ICR |= USART_ICR_PECF;
-          return errc::kUartParityError;
-        } else {
-          return errc::kDmaStreamTransferError;
-        }
-      }();
-
-      __HAL_DMA_CLEAR_FLAG(&rx_dma_, rx_dma_flags_.te);
-    }
-
-    if (dma_sr & rx_dma_flags_.tc) {
-      emit = true;
-
-      __HAL_DMA_CLEAR_FLAG(&rx_dma_, rx_dma_flags_.tc);
-
-      // We completely filled our buffer.
-      bytes_read = current_read_bytes_;
-    }
-
-    if (emit) {
-      // Have the UART stop requesting DMA.
-      uart_->CR3 &= ~(USART_CR3_DMAR);
-      if (HAL_DMA_Abort_IT(&rx_dma_) != HAL_OK) {
-        mbed_die();
-      }
-
-      event_queue_.Queue([this, bytes_read]() {
-          auto copy = current_read_callback_;
-          auto rx_error = pending_rx_error_;
-
-          current_read_callback_ = {};
-          current_read_bytes_ = 0;
-          pending_rx_error_ = {};
-
-          copy(rx_error, bytes_read);
-        });
-    }
-  }
-
-  void IRQ_HandleUart() {
-    // We should only get this for idle flags.  We should cancel our
-    // DMA transfer, make sure it is truly done, then we can report
-    // the bytes we have.
-    if (uart_->ISR & USART_ISR_IDLE) {
-      uart_->ICR |= USART_ICR_IDLECF;
-
-      if (HAL_DMA_Abort_IT(&rx_dma_) != HAL_OK) {
-        mbed_die();
-      }
-
-      ssize_t bytes_read = current_read_bytes_ - rx_dma_.Instance->CNDTR;
-      event_queue_.Queue([this, bytes_read]() {
-          auto copy = current_read_callback_;
-          auto rx_error = pending_rx_error_;
-
-          current_read_callback_ = {};
-          current_read_bytes_ = 0;
-          pending_rx_error_ = {};
-
-          copy(rx_error, bytes_read);
-        });
-    }
-  }
-
-  MillisecondTimer* const timer_;
-  const Options options_;
-  Stm32Serial stm32_serial_;
-  DigitalOut dir_;
-
-  using EventQueue = micro::AtomicEventQueue<24>;
-  EventQueue event_queue_;
-
-  USART_TypeDef* uart_ = nullptr;
-  IRQn_Type uart_rx_irq_ = {};
-
-  // This buffer serves as a place to store things in between calls to
-  // AsyncReadSome so that there is minimal chance of data loss even
-  // at high data rates.
-  volatile uint16_t* rx_buffer_ = nullptr;
-  uint16_t rx_buffer_pos_ = 0;
-
-  DMA_HandleTypeDef rx_dma_ = {};
-  DMA_HandleTypeDef tx_dma_ = {};
-
-  struct DmaFlags {
-    uint32_t gif = 0;
-    uint32_t te = 0;
-    uint32_t ht = 0;
-    uint32_t tc = 0;
-  };
-
-  DmaFlags rx_dma_flags_;
-  DmaFlags tx_dma_flags_;
-
-  micro::CallbackTable::Callback tx_callback_;
-  micro::CallbackTable::Callback rx_callback_;
-  micro::CallbackTable::Callback uart_callback_;
-
-  micro::SizeCallback current_read_callback_;
-  ssize_t current_read_bytes_ = 0;
-  micro::error_code pending_rx_error_;
+  UART_HandleTypeDef uart_;
+  DMA_HandleTypeDef hdma_usart1_rx_;
+  DMA_HandleTypeDef hdma_usart1_tx_;
 
   micro::SizeCallback current_write_callback_;
   ssize_t current_write_bytes_ = 0;
 
-  DMA_TypeDef* dma1_ = DMA1;
-  DMA_TypeDef* dma2_ = DMA2;
+  micro::CallbackTable::Callback tx_callback_;
+  micro::CallbackTable::Callback rx_callback_;
+  micro::CallbackTable::Callback uart_callback_;
 };
 
 Stm32G4AsyncUart::Stm32G4AsyncUart(micro::Pool* pool,
                                    MillisecondTimer* timer,
                                    const Options& options)
-    : impl_(pool, pool, timer, options) {}
+    : impl_(pool, options) {}
 
 Stm32G4AsyncUart::~Stm32G4AsyncUart() {}
 
@@ -459,7 +201,7 @@ void Stm32G4AsyncUart::AsyncWriteSome(const string_view& data,
 }
 
 void Stm32G4AsyncUart::Poll() {
-  impl_->event_queue_.Poll();
+  impl_->Poll();
 }
 
 }
