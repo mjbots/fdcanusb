@@ -246,24 +246,28 @@ int main(void) {
 
         options.tx = PA_2;
         options.rx = PA_3;
-        options.baud_rate = 9600;
+        options.baud_rate = 115200;
 
         return options;
       }());
 
   micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&uart);
-  micro::CommandManager command_manager(&pool, &uart, &write_stream);
-  NullFlash flash_interface;
-  micro::PersistentConfig persistent_config(
-      pool, command_manager, flash_interface);
+  // micro::CommandManager command_manager(&pool, &uart, &write_stream);
+  // NullFlash flash_interface;
+  // micro::PersistentConfig persistent_config(
+  //     pool, command_manager, flash_interface);
 
-  command_manager.AsyncStart();
+  // command_manager.AsyncStart();
 
   uint8_t tx_data[16] = {0, 3, 7, 12, 18, 25, 33, 42,
                          1, 4, 8, 13, 19, 26, 34, 43};
 
   FDCAN_RxHeaderTypeDef rx_header = {};
   uint8_t rx_data[8] = {};
+  char serial_rx[16] = {};
+  char serial_tx[32] = {};
+  bool read_outstanding = false;
+  bool write_outstanding = false;
 
   while (true) {
     const uint32_t start = timer.read_ms();
@@ -276,6 +280,26 @@ int main(void) {
       if (can.Poll(&rx_header, rx_data)) {
         g_led_value = !g_led_value;
         led1.write(g_led_value);
+      }
+
+      if (!read_outstanding) {
+        read_outstanding = true;
+        uart.AsyncReadSome(
+            serial_rx,
+            [&](auto, auto bytes) {
+              read_outstanding = false;
+              serial_rx[bytes] = 0;
+              if (!write_outstanding) {
+                auto size =
+                    snprintf(serial_tx, sizeof(serial_tx) - 1, "read: %s\r\n",
+                             serial_rx);
+                write_outstanding = true;
+                uart.AsyncWriteSome(
+                    std::string_view(serial_tx, size), [&](auto, auto) {
+                      write_outstanding = false;
+                    });
+              }
+            });
       }
     }
 
