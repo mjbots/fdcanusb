@@ -193,6 +193,9 @@ class FDCan {
 };
 
 void SetupClock() {
+  __HAL_RCC_SYSCFG_CLK_ENABLE();
+  __HAL_RCC_PWR_CLK_ENABLE();
+
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
   RCC_ClkInitStruct.ClockType      = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
@@ -208,8 +211,9 @@ void SetupClock() {
   {
     RCC_PeriphCLKInitTypeDef PeriphClkInit = {};
 
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_FDCAN | RCC_PERIPHCLK_USART2;
     PeriphClkInit.FdcanClockSelection = RCC_FDCANCLKSOURCE_PCLK1;
+    PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
     {
       mbed_die();
@@ -224,12 +228,12 @@ bool g_led_value = false;
 int main(void) {
   SetupClock();
 
-  FDCan can([]() {
-      FDCan::Options options;
-      options.td = PA_12;
-      options.rd = PA_11;
-      return options;
-    }());
+  // FDCan can([]() {
+  //     FDCan::Options options;
+  //     options.td = PA_12;
+  //     options.rd = PA_11;
+  //     return options;
+  //   }());
 
   fw::MillisecondTimer timer;
 
@@ -242,7 +246,7 @@ int main(void) {
 
         options.tx = PA_2;
         options.rx = PA_3;
-        options.baud_rate = 115200;
+        options.baud_rate = 9600;
 
         return options;
       }());
@@ -253,12 +257,15 @@ int main(void) {
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
 
+  command_manager.AsyncStart();
+
   // auto* const can1 = FDCAN1;
   uint8_t tx_data[16] = {0, 3, 7, 12, 18, 25, 33, 42,
                          1, 4, 8, 13, 19, 26, 34, 43};
 
   FDCAN_RxHeaderTypeDef rx_header = {};
   uint8_t rx_data[8] = {};
+  bool write_outstanding = false;
 
   while (true) {
     const uint32_t start = timer.read_ms();
@@ -268,13 +275,19 @@ int main(void) {
 
       uart.Poll();
 
-      if (can.Poll(&rx_header, rx_data)) {
-        g_led_value = !g_led_value;
-        led1.write(g_led_value);
-      }
+      // if (can.Poll(&rx_header, rx_data)) {
+      //   g_led_value = !g_led_value;
+      //   led1.write(g_led_value);
+      // }
     }
 
-    can.Send(0x321, tx_data, sizeof(tx_data));
+    // can.Send(0x321, tx_data, sizeof(tx_data));
+    if (!write_outstanding) {
+      write_outstanding = true;
+      uart.AsyncWriteSome("test\r\n", [&](auto, auto) {
+          write_outstanding = false;
+        });
+    }
   }
 }
 

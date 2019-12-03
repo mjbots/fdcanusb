@@ -226,56 +226,76 @@ class Stm32G4AsyncUart::Impl {
     MJ_ASSERT(!current_read_callback_);
     current_read_callback_ = callback;
     current_read_bytes_ = data.size();
-    HAL_DMA_Start_IT(&rx_dma_, reinterpret_cast<uint32_t>(&(uart_->RDR)),
-                     reinterpret_cast<uint32_t>(data.data()),
-                     current_read_bytes_);
+    if (HAL_DMA_Start_IT(&rx_dma_, reinterpret_cast<uint32_t>(&(uart_->RDR)),
+                         reinterpret_cast<uint32_t>(data.data()),
+                         current_read_bytes_) != HAL_OK) {
+      mbed_die();
+    }
+
+    uart_->CR3 |= USART_CR3_DMAR;
   }
 
   void AsyncWriteSome(const string_view& data,
                       const micro::SizeCallback& callback) {
-    HAL_DMA_Start_IT(&tx_dma_, reinterpret_cast<uint32_t>(data.data()),
-                     reinterpret_cast<uint32_t>(&(uart_->TDR)),
-                     data.size());
+    MJ_ASSERT(!current_write_callback_);
+    current_write_callback_ = callback;
     current_write_bytes_ = data.size();
+    if (HAL_DMA_Start_IT(&tx_dma_, reinterpret_cast<uint32_t>(data.data()),
+                         reinterpret_cast<uint32_t>(&(uart_->TDR)),
+                         data.size() != HAL_OK)) {
+      mbed_die();
+    }
+    uart_->ICR |= USART_ICR_TCCF;
+    uart_->CR3 |= USART_CR3_DMAT;
   }
 
   void IRQ_HandleTransmit() {
     const ssize_t amount_sent = current_write_bytes_ - tx_dma_.Instance->CNDTR;
-
-    // Have the UART stop requesting DMA.
-    uart_->CR3 &= ~(USART_CR3_DMAT);
 
     const auto dma_sr = DMA_GET_SR(&tx_dma_);
     const auto uart_sr = uart_->ISR;
     (void) uart_sr;
 
     if (dma_sr & tx_dma_flags_.ht) {
-      mbed_die();
+      __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.ht);
+      // Just ignore this.
     }
 
     if (dma_sr & tx_dma_flags_.gif) {
-      mbed_die();
+      __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.gif);
+      // Ignore this too.
     }
 
+    bool emit = false;
     micro::error_code error;
     if (dma_sr & tx_dma_flags_.te) {
       __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.te);
       error = errc::kDmaStreamTransferError;
+      emit = true;
     }
 
     if (dma_sr & tx_dma_flags_.tc) {
       __HAL_DMA_CLEAR_FLAG(&tx_dma_, tx_dma_flags_.tc);
       error = {};
+      emit = true;
     }
 
-    event_queue_.Queue([this, error, amount_sent]() {
-        auto copy = current_write_callback_;
+    if (emit) {
+      // Have the UART stop requesting DMA.
+      uart_->CR3 &= ~(USART_CR3_DMAT);
+      if (HAL_DMA_Abort_IT(&tx_dma_) != HAL_OK) {
+        mbed_die();
+      }
 
-        current_write_callback_ = {};
-        current_write_bytes_ = 0;
+      event_queue_.Queue([this, error, amount_sent]() {
+          auto copy = current_write_callback_;
 
-        copy(error, amount_sent);
-      });
+          current_write_callback_ = {};
+          current_write_bytes_ = 0;
+
+          copy(error, amount_sent);
+        });
+    }
   }
 
   void IRQ_HandleReceive() {
@@ -287,14 +307,19 @@ class Stm32G4AsyncUart::Impl {
     ssize_t bytes_read = 0;
 
     if (dma_sr & rx_dma_flags_.ht) {
-      mbed_die();
+      __HAL_DMA_CLEAR_FLAG(&rx_dma_, rx_dma_flags_.ht);
+      // otherwise ignore
     }
 
     if (dma_sr & rx_dma_flags_.gif) {
-      mbed_die();
+      __HAL_DMA_CLEAR_FLAG(&rx_dma_, rx_dma_flags_.gif);
+      // otherwise ignore
     }
 
+    bool emit = false;
+
     if (dma_sr & rx_dma_flags_.te) {
+      emit = true;
       // We had a transfer error.
       pending_rx_error_ = [&]() {
         if (uart_sr & USART_ISR_ORE) {
@@ -318,22 +343,32 @@ class Stm32G4AsyncUart::Impl {
     }
 
     if (dma_sr & rx_dma_flags_.tc) {
+      emit = true;
+
       __HAL_DMA_CLEAR_FLAG(&rx_dma_, rx_dma_flags_.tc);
 
       // We completely filled our buffer.
       bytes_read = current_read_bytes_;
     }
 
-    event_queue_.Queue([this, bytes_read]() {
-        auto copy = current_read_callback_;
-        auto rx_error = pending_rx_error_;
+    if (emit) {
+      // Have the UART stop requesting DMA.
+      uart_->CR3 &= ~(USART_CR3_DMAR);
+      if (HAL_DMA_Abort_IT(&rx_dma_) != HAL_OK) {
+        mbed_die();
+      }
 
-        current_read_callback_ = {};
-        current_read_bytes_ = 0;
-        pending_rx_error_ = {};
+      event_queue_.Queue([this, bytes_read]() {
+          auto copy = current_read_callback_;
+          auto rx_error = pending_rx_error_;
 
-        copy(rx_error, bytes_read);
-      });
+          current_read_callback_ = {};
+          current_read_bytes_ = 0;
+          pending_rx_error_ = {};
+
+          copy(rx_error, bytes_read);
+        });
+    }
   }
 
   void IRQ_HandleUart() {
@@ -343,7 +378,9 @@ class Stm32G4AsyncUart::Impl {
     if (uart_->ISR & USART_ISR_IDLE) {
       uart_->ICR |= USART_ICR_IDLECF;
 
-      HAL_DMA_Abort_IT(&rx_dma_);
+      if (HAL_DMA_Abort_IT(&rx_dma_) != HAL_OK) {
+        mbed_die();
+      }
 
       ssize_t bytes_read = current_read_bytes_ - rx_dma_.Instance->CNDTR;
       event_queue_.Queue([this, bytes_read]() {
@@ -376,8 +413,8 @@ class Stm32G4AsyncUart::Impl {
   volatile uint16_t* rx_buffer_ = nullptr;
   uint16_t rx_buffer_pos_ = 0;
 
-  DMA_HandleTypeDef rx_dma_;
-  DMA_HandleTypeDef tx_dma_;
+  DMA_HandleTypeDef rx_dma_ = {};
+  DMA_HandleTypeDef tx_dma_ = {};
 
   struct DmaFlags {
     uint32_t gif = 0;
@@ -399,6 +436,9 @@ class Stm32G4AsyncUart::Impl {
 
   micro::SizeCallback current_write_callback_;
   ssize_t current_write_bytes_ = 0;
+
+  DMA_TypeDef* dma1_ = DMA1;
+  DMA_TypeDef* dma2_ = DMA2;
 };
 
 Stm32G4AsyncUart::Stm32G4AsyncUart(micro::Pool* pool,

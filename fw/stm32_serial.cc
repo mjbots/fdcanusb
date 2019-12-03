@@ -96,7 +96,11 @@ Stm32Serial::Stm32Serial(const Options& options) {
   huart.Init.StopBits = 1;
   huart.Init.Parity = UART_PARITY_NONE;
   huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart.FifoMode = USART_FIFOMODE_ENABLE;
+  huart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+
+  // huart.FifoMode = USART_FIFOMODE_ENABLE;
 
   const int32_t max_16oversampling_baud =
       GetMax16OversamplingBaud(uart_name());
