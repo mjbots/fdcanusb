@@ -124,127 +124,24 @@ IRQn_Type GetUsartIrq(USART_TypeDef* uart) {
   return {};
 }
 
-void EnableUart(USART_TypeDef* uart) {
-#if defined (USART1_BASE)
-  if (uart == USART1) {
-    __HAL_RCC_USART1_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (USART2_BASE)
-  if (uart == USART2) {
-    __HAL_RCC_USART2_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (USART3_BASE)
-  if (uart == USART3) {
-    __HAL_RCC_USART3_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (UART4_BASE)
-  if (uart == UART4) {
-    __HAL_RCC_UART4_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (USART4_BASE)
-  if (uart == USART4) {
-    __HAL_RCC_USART4_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (UART5_BASE)
-  if (uart == UART5) {
-    __HAL_RCC_UART5_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (USART5_BASE)
-  if (uart == USART5) {
-    __HAL_RCC_USART5_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (USART6_BASE)
-  if (uart == USART6) {
-    __HAL_RCC_USART6_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (UART7_BASE)
-  if (uart == UART7) {
-    __HAL_RCC_UART7_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (USART7_BASE)
-  if (uart == USART7) {
-    __HAL_RCC_USART7_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (UART8_BASE)
-  if (uart == UART8) {
-    __HAL_RCC_UART8_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (USART8_BASE)
-  if (uart == USART8) {
-    __HAL_RCC_USART8_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (UART9_BASE)
-  if (uart == UART9) {
-    __HAL_RCC_UART9_CLK_ENABLE();
-    return;
-  }
-#endif
-#if defined (UART10_BASE)
-  if (uart == UART10) {
-    __HAL_RCC_UART10_CLK_ENABLE();
-    return;
-  }
-#endif
-  mbed_die();
-}
-
 }
 
 class Stm32G4AsyncUart::Impl {
  public:
-  Impl(const Options& options) {
-      // : stm32_serial_([&]() {
-      //     Stm32Serial::Options s_options;
-      //     s_options.tx = options.tx;
-      //     s_options.rx = options.rx;
-      //     s_options.baud_rate = options.baud_rate;
-      //     return s_options;
-      //   }()) {
+  Impl(const Options& options)
+      : stm32_serial_([&]() {
+           Stm32Serial::Options s_options;
+           s_options.tx = options.tx;
+           s_options.rx = options.rx;
+           s_options.baud_rate = options.baud_rate;
+           return s_options;
+        }()) {
 
     __HAL_RCC_DMAMUX1_CLK_ENABLE();
     __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
 
-    pinmap_pinout(options.tx, PinMap_UART_TX);
-    pinmap_pinout(options.rx, PinMap_UART_RX);
-    if (options.tx != NC) {
-      pin_mode(options.tx, PullUp);
-    }
-    if (options.rx != NC) {
-      pin_mode(options.rx, PullUp);
-    }
-
-    auto* const uart = [&]() {
-      const auto uart_tx = static_cast<UARTName>(
-          pinmap_peripheral(options.tx, PinMap_UART_TX));
-      const auto uart_rx = static_cast<UARTName>(
-          pinmap_peripheral(options.rx, PinMap_UART_RX));
-      return reinterpret_cast<USART_TypeDef*>(pinmap_merge(uart_tx, uart_rx));
-    }();
+    auto* const uart = stm32_serial_.uart();
 
     hdma_usart_rx_.Instance = options.rx_dma;
     hdma_usart_rx_.Init.Request = GetUartRxRequest(uart);
@@ -277,40 +174,6 @@ class Stm32G4AsyncUart::Impl {
     }
 
     __HAL_LINKDMA(&uart_, hdmatx,hdma_usart_tx_);
-
-
-    EnableUart(uart);
-
-    uart_.Instance = uart;
-    uart_.Init.BaudRate = options.baud_rate;
-    uart_.Init.WordLength = UART_WORDLENGTH_8B;
-    uart_.Init.StopBits = UART_STOPBITS_1;
-    uart_.Init.Parity = UART_PARITY_NONE;
-    uart_.Init.Mode = UART_MODE_TX_RX;
-    uart_.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    uart_.Init.OverSampling = UART_OVERSAMPLING_16;
-    uart_.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    uart_.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-    uart_.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    if (HAL_UART_Init(&uart_) != HAL_OK)
-    {
-      mbed_die();
-    }
-
-    if (HAL_UARTEx_SetTxFifoThreshold(
-            &uart_, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
-    {
-      mbed_die();
-    }
-    if (HAL_UARTEx_SetRxFifoThreshold(
-            &uart_, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
-    {
-      mbed_die();
-    }
-    if (HAL_UARTEx_EnableFifoMode(&uart_) != HAL_OK)
-    {
-      mbed_die();
-    }
 
     tx_callback_ = micro::CallbackTable::MakeFunction([this]() {
         HAL_DMA_IRQHandler(&hdma_usart_tx_);
@@ -429,8 +292,8 @@ class Stm32G4AsyncUart::Impl {
     }
   }
 
-  // Stm32Serial stm32_serial_;
-  UART_HandleTypeDef uart_{};
+  Stm32Serial stm32_serial_;
+  UART_HandleTypeDef& uart_ = *stm32_serial_.huart();
   DMA_HandleTypeDef hdma_usart_rx_;
   DMA_HandleTypeDef hdma_usart_tx_;
 

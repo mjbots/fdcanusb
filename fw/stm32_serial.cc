@@ -149,20 +149,9 @@ Stm32Serial::Stm32Serial(const Options& options) {
   // Then configure the UART itself.
   huart_.Instance = uart_;
   huart_.Init.BaudRate = options.baud_rate;
-  huart_.Init.WordLength = 8;
-  huart_.Init.StopBits = 1;
+  huart_.Init.WordLength = UART_WORDLENGTH_8B;
+  huart_.Init.StopBits = UART_STOPBITS_1;
   huart_.Init.Parity = UART_PARITY_NONE;
-  huart_.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart_.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart_.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart_.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-
-  const int32_t max_16oversampling_baud =
-      GetMax16OversamplingBaud(uart_name());
-  huart_.Init.OverSampling =
-      (options.baud_rate > max_16oversampling_baud ?
-       UART_OVERSAMPLING_8 :
-       UART_OVERSAMPLING_16);
 
   if (options.tx == NC) {
     huart_.Init.Mode = UART_MODE_RX;
@@ -172,7 +161,34 @@ Stm32Serial::Stm32Serial(const Options& options) {
     huart_.Init.Mode = UART_MODE_TX_RX;
   }
 
-  HAL_UART_Init(&huart_);
+  huart_.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+
+  const int32_t max_16oversampling_baud =
+      GetMax16OversamplingBaud(uart_name());
+  huart_.Init.OverSampling =
+      (options.baud_rate > max_16oversampling_baud ?
+       UART_OVERSAMPLING_8 :
+       UART_OVERSAMPLING_16);
+
+  huart_.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart_.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart_.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+
+  if (HAL_UART_Init(&huart_) != HAL_OK) {
+    mbed_die();
+  }
+
+  if (HAL_UARTEx_SetTxFifoThreshold(
+          &huart_, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
+    mbed_die();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(
+          &huart_, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK) {
+    mbed_die();
+  }
+  if (HAL_UARTEx_EnableFifoMode(&huart_) != HAL_OK) {
+    mbed_die();
+  }
 }
 
 }
