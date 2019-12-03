@@ -295,7 +295,7 @@ class Stm32G4AsyncUart::Impl {
     {
       mbed_die();
     }
-    if (HAL_UARTEx_DisableFifoMode(&uart_) != HAL_OK)
+    if (HAL_UARTEx_EnableFifoMode(&uart_) != HAL_OK)
     {
       mbed_die();
     }
@@ -365,17 +365,49 @@ class Stm32G4AsyncUart::Impl {
   }
 
   void Poll() {
+    const bool idle = [&]() {
+      if (uart_.Instance->ISR & USART_ISR_IDLE) {
+        uart_.Instance->ICR = USART_ISR_IDLE;
+        return true;
+      }
+      return false;
+    }();
+
+    if (idle && current_read_callback_ &&
+        uart_.RxState != HAL_UART_STATE_READY) {
+      // We would use the HAL API, but it only supports aborting both
+      // TX and RX at the same time.  We only want to abort RX.
+      CLEAR_BIT(uart_.Instance->CR3, USART_CR3_DMAR);
+      if (HAL_DMA_Abort(uart_.hdmarx) != HAL_OK) {
+        mbed_die();
+      }
+
+      // The contents of 'UART_EndRxTransfer'
+
+      /* Disable RXNE, PE and ERR (Frame error, noise error, overrun error) interrupts */
+      CLEAR_BIT(uart_.Instance->CR1, (USART_CR1_RXNEIE_RXFNEIE | USART_CR1_PEIE));
+      CLEAR_BIT(uart_.Instance->CR3, (USART_CR3_EIE | USART_CR3_RXFTIE));
+
+      /* At end of Rx process, restore huart->RxState to Ready */
+      uart_.RxState = HAL_UART_STATE_READY;
+
+      /* Reset RxIsr function pointer */
+      uart_.RxISR = NULL;
+    }
+
     if (current_write_callback_) {
       if (uart_.gState == HAL_UART_STATE_READY) {
-        auto copy = current_write_callback_;
-        current_write_callback_ = {};
+        decltype(current_write_callback_) copy;
+        using std::swap;
+        swap(copy, current_write_callback_);
         copy(micro::error_code(), current_write_bytes_);
       }
     }
     if (current_read_callback_) {
       if (uart_.RxState == HAL_UART_STATE_READY) {
-        auto copy = current_read_callback_;
-        current_read_callback_ = {};
+        decltype(current_read_callback_) copy;
+        using std::swap;
+        swap(copy, current_read_callback_);
         copy(micro::error_code(),
              current_read_bytes_ - hdma_usart_rx_.Instance->CNDTR);
       }
