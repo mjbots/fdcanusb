@@ -217,6 +217,14 @@ void EnableUart(USART_TypeDef* uart) {
 class Stm32G4AsyncUart::Impl {
  public:
   Impl(const Options& options) {
+      // : stm32_serial_([&]() {
+      //     Stm32Serial::Options s_options;
+      //     s_options.tx = options.tx;
+      //     s_options.rx = options.rx;
+      //     s_options.baud_rate = options.baud_rate;
+      //     return s_options;
+      //   }()) {
+
     __HAL_RCC_DMAMUX1_CLK_ENABLE();
     __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
@@ -252,7 +260,7 @@ class Stm32G4AsyncUart::Impl {
       mbed_die();
     }
 
-    __HAL_LINKDMA(&uart_,hdmarx,hdma_usart_rx_);
+    __HAL_LINKDMA(&uart_, hdmarx,hdma_usart_rx_);
 
     hdma_usart_tx_.Instance = options.tx_dma;
     hdma_usart_tx_.Init.Request = GetUartTxRequest(uart);
@@ -268,7 +276,8 @@ class Stm32G4AsyncUart::Impl {
       mbed_die();
     }
 
-    __HAL_LINKDMA(&uart_,hdmatx,hdma_usart_tx_);
+    __HAL_LINKDMA(&uart_, hdmatx,hdma_usart_tx_);
+
 
     EnableUart(uart);
 
@@ -287,11 +296,14 @@ class Stm32G4AsyncUart::Impl {
     {
       mbed_die();
     }
-    if (HAL_UARTEx_SetTxFifoThreshold(&uart_, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+
+    if (HAL_UARTEx_SetTxFifoThreshold(
+            &uart_, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
     {
       mbed_die();
     }
-    if (HAL_UARTEx_SetRxFifoThreshold(&uart_, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+    if (HAL_UARTEx_SetRxFifoThreshold(
+            &uart_, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
     {
       mbed_die();
     }
@@ -342,6 +354,9 @@ class Stm32G4AsyncUart::Impl {
     current_read_callback_ = callback;
     current_read_bytes_ = data.size();
 
+    // TODO(jpieper): By invoking the HAL receive API for each
+    // AsyncReadSome, we are basically guaranteed to drop bytes
+    // between calls, even for relatively slow baud rates.
     if (HAL_UART_Receive_DMA(
             &uart_,
             reinterpret_cast<uint8_t*>(data.data()),
@@ -414,7 +429,8 @@ class Stm32G4AsyncUart::Impl {
     }
   }
 
-  UART_HandleTypeDef uart_;
+  // Stm32Serial stm32_serial_;
+  UART_HandleTypeDef uart_{};
   DMA_HandleTypeDef hdma_usart_rx_;
   DMA_HandleTypeDef hdma_usart_tx_;
 
