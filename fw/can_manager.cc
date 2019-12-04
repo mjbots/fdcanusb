@@ -328,7 +328,23 @@ class CanManager::Impl {
   }
 
   void Command_Status(const micro::CommandManager::Response& response) {
-    WriteMessage("ERR not implemented\r\n", response);
+    if (!can_) {
+      WriteMessage("ERR not in BusOn\r\n", response);
+      return;
+    }
+
+    auto status = can_->status();
+    snprintf(status_line_, sizeof(status_line_),
+             "lec=%lu dlec=%lu err=%lu warn=%lu busoff=%lu "
+             "pexc=%lu tdc=%lu\r\n",
+             status.LastErrorCode,
+             status.DataLastErrorCode,
+             status.ErrorPassive,
+             status.Warning,
+             status.BusOff,
+             status.ProtocolException,
+             status.TDCvalue);
+    WriteMessage(status_line_, response);
   }
 
   void WriteOK(const micro::CommandManager::Response& response) {
@@ -391,6 +407,7 @@ class CanManager::Impl {
   char rx_data_[64] = {};
   bool write_outstanding_ = false;
   char emit_line_[256] = {};
+  char status_line_[256] = {};
 
   micro::VoidCallback done_callback_;
 };

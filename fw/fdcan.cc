@@ -40,6 +40,44 @@ constexpr uint32_t RoundUpDlc(size_t size) {
   if (size <= 64) { return FDCAN_DLC_BYTES_64; }
   return 0;
 }
+
+struct TimeOptions {
+  int prescaler = 0;
+  int sync_jump_width = 0;
+  int time_seg1 = 0;
+  int time_seg2 = 0;
+};
+
+TimeOptions MakeTime(int bitrate) {
+  TimeOptions result;
+
+  result.prescaler = 1;
+
+  uint32_t pclk1 = HAL_RCC_GetPCLK1Freq();
+  uint32_t total_divisor = 0;
+
+  while (true) {
+    total_divisor = (pclk1 / result.prescaler) / bitrate;
+
+    if (total_divisor > 500) {
+      result.prescaler++;
+      continue;
+    }
+
+    break;
+  }
+
+  // One of the divisor counts comes for free.
+  total_divisor--;
+
+  // Split up the remainder roughly 3/1
+  result.time_seg2 = total_divisor / 3;
+  result.time_seg1 = total_divisor - result.time_seg2;
+
+  result.sync_jump_width = std::min(16, result.time_seg2);
+
+  return result;
+}
 }
 
 FDCan::FDCan(const Options& options)
@@ -81,14 +119,18 @@ FDCan::FDCan(const Options& options)
   can.Init.TransmitPause = ENABLE;
   can.Init.ProtocolException = DISABLE;
 
-  can.Init.NominalPrescaler = 2;
-  can.Init.NominalSyncJumpWidth = 16;
-  can.Init.NominalTimeSeg1 = 63;
-  can.Init.NominalTimeSeg2 = 16;
-  can.Init.DataPrescaler = 4;
-  can.Init.DataSyncJumpWidth = 2;
-  can.Init.DataTimeSeg1 = 3;
-  can.Init.DataTimeSeg2 = 2;
+  auto nominal = MakeTime(options.slow_bitrate);
+  can.Init.NominalPrescaler = nominal.prescaler;
+  can.Init.NominalSyncJumpWidth = nominal.sync_jump_width;
+  can.Init.NominalTimeSeg1 = nominal.time_seg1;
+  can.Init.NominalTimeSeg2 = nominal.time_seg2;
+
+  auto fast = MakeTime(options.fast_bitrate);
+  can.Init.DataPrescaler = fast.prescaler;
+  can.Init.DataSyncJumpWidth = fast.sync_jump_width;
+  can.Init.DataTimeSeg1 = fast.time_seg1;
+  can.Init.DataTimeSeg2 = fast.time_seg2;
+
   can.Init.StdFiltersNbr =
       std::count_if(
           options.filter_begin, options.filter_end,
@@ -272,6 +314,12 @@ bool FDCan::Poll(FDCAN_RxHeaderTypeDef* header,
   }
 
   return true;
+}
+
+FDCAN_ProtocolStatusTypeDef FDCan::status() {
+  FDCAN_ProtocolStatusTypeDef result = {};
+  HAL_FDCAN_GetProtocolStatus(&hfdcan1_, &result);
+  return result;
 }
 
 }

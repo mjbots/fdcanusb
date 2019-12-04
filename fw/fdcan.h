@@ -98,6 +98,8 @@ class FDCan {
   /// @return true if a packet was available.
   bool Poll(FDCAN_RxHeaderTypeDef* header, mjlib::base::string_span);
 
+  FDCAN_ProtocolStatusTypeDef status();
+
  private:
   const Options options_;
   FDCAN_GlobalTypeDef* can_ = nullptr;
