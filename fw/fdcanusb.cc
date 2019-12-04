@@ -20,7 +20,7 @@
 #include "mjlib/micro/command_manager.h"
 #include "mjlib/micro/persistent_config.h"
 
-#include "fw/fdcan.h"
+#include "fw/can_manager.h"
 #include "fw/millisecond_timer.h"
 #include "fw/stm32g4_async_uart.h"
 
@@ -83,12 +83,12 @@ bool g_led_value = false;
 int main(void) {
   SetupClock();
 
-  fw::FDCan can([]() {
-      fw::FDCan::Options options;
-      options.td = PA_12;
-      options.rd = PA_11;
-      return options;
-    }());
+  // fw::FDCan can([]() {
+  //     fw::FDCan::Options options;
+  //     options.td = PA_12;
+  //     options.rd = PA_11;
+  //     return options;
+  //   }());
 
   fw::MillisecondTimer timer;
 
@@ -112,13 +112,16 @@ int main(void) {
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
 
+  fw::CanManager can_manager(
+      pool, persistent_config, command_manager, write_stream);
+
   command_manager.AsyncStart();
 
-  char tx_data[16] = {0, 3, 7, 12, 18, 25, 33, 42,
-                      1, 4, 8, 13, 19, 26, 34, 43};
+  // char tx_data[16] = {0, 3, 7, 12, 18, 25, 33, 42,
+  //                     1, 4, 8, 13, 19, 26, 34, 43};
 
-  FDCAN_RxHeaderTypeDef rx_header = {};
-  char rx_data[8] = {};
+  // FDCAN_RxHeaderTypeDef rx_header = {};
+  // char rx_data[8] = {};
 
   while (true) {
     const uint32_t start = timer.read_ms();
@@ -128,13 +131,13 @@ int main(void) {
 
       uart.Poll();
 
-      if (can.Poll(&rx_header, base::string_span(rx_data))) {
-        g_led_value = !g_led_value;
-        led1.write(g_led_value);
-      }
+      // if (can.Poll(&rx_header, base::string_span(rx_data))) {
+      //   g_led_value = !g_led_value;
+      //   led1.write(g_led_value);
+      // }
     }
 
-    can.Send(0x321, tx_data);
+    // can.Send(0x321, tx_data);
   }
 }
 

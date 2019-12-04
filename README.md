@@ -12,17 +12,13 @@ specific response followed by a final line consisting solely of `OK` or
 
 ## States ##
 
-The device can be in one of three states.
+The device can be in one of two states.
 
 1. *Bus Off*: This is the initial state of the device.  In this state,
 no frames may be sent or received, but the device may be configured.
 
 2. *Bus On*: In this state frames may be sent and received, but
 configuration is locked out.
-
-3. *Error*: If enabled, the device may enter an error state upon
-certain bus conditions.  If in this state, then an error clear command
-must be sent to re-enter the "Bus Off" state.
 
 # Commands #
 
@@ -92,16 +88,13 @@ Reset all configuration values to their "default" state.
 ### *can on* ###
 
 Enter the "Bus On" state.  All configurable values are validated and
-put into place.
+put into place.  This results in an error if the device is already in
+the "Bus On" state.
 
 ### *can off* ###
 
 Enter the "Bus Off" state.  Transmission and reception of CAN messages
 is halted, and configurable values may be changed.
-
-### *can clear* ###
-
-Clear the "Error" state.  This will re-enter the "Bus Off" state.
 
 ### *can std* ###
 
@@ -183,5 +176,6 @@ The following items may be configured.
   * 0 - standard
   * 1 - extended
 * *can.filter.N.action*
-  * 0 - accept
-  * 1 - reject
+  * 0 - disable
+  * 1 - accept
+  * 2 - reject

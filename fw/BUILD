@@ -19,6 +19,8 @@ load("@com_github_ARMmbed_mbed-os//:rules.bzl", "mbed_binary")
 mbed_binary(
     name = "fdcanusb",
     srcs = [
+        "can_manager.h",
+        "can_manager.cc",
         "error.h",
         "error.cc",
         "fdcan.h",
