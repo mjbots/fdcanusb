@@ -112,6 +112,21 @@ int ParseDlc(uint32_t dlc_code) {
   mbed_die();
   return 0;
 }
+
+int ParseHexNybble(char c) {
+  if (c >= '0' && c <= '9') { return c - '0'; }
+  if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
+  if (c >= 'A' && c <= 'F') { return c - 'A' + 10; }
+  return -1;
+}
+
+int ParseHexByte(const char* value) {
+  int high = ParseHexNybble(value[0]);
+  if (high < 0) { return high; }
+  int low = ParseHexNybble(value[1]);
+  if (low < 0) { return low; }
+  return (high << 4) | low;
+}
 }
 
 class CanManager::Impl {
@@ -137,7 +152,7 @@ class CanManager::Impl {
       Command_BusOn(response);
     } else if (cmd == "off") {
       Command_BusOff(response);
-    } else if (cmd == "std" || cmd == "ext") {
+    } else if (cmd == "std" || cmd == "ext" || cmd == "send") {
       Command_Send(cmd, tokenizer.remaining(), response);
     } else if (cmd == "status") {
       Command_Status(response);
@@ -153,29 +168,32 @@ class CanManager::Impl {
     }
 
     auto map_mode = [](auto value) {
+      using FM = FDCan::FilterMode;
       switch (value) {
-        case 0: return FDCan::kRange;
-        case 1: return FDCan::kDual;
-        case 2: return FDCan::kMask;
+        case 0: return FM::kRange;
+        case 1: return FM::kDual;
+        case 2: return FM::kMask;
       }
-      return FDCan::kMask;
+      return FM::kMask;
     };
 
     auto map_action = [](auto value) {
+      using FA = FDCan::FilterAction;
       switch (value) {
-        case 0: return FDCan::kDisable;
-        case 1: return FDCan::kAccept;
-        case 2: return FDCan::kReject;
+        case 0: return FA::kDisable;
+        case 1: return FA::kAccept;
+        case 2: return FA::kReject;
       }
-      return FDCan::kDisable;
+      return FA::kDisable;
     };
 
     auto map_type = [](auto value) {
+      using FT = FDCan::FilterType;
       switch (value) {
-        case 0: return FDCan::kStandard;
-        case 1: return FDCan::kExtended;
+        case 0: return FT::kStandard;
+        case 1: return FT::kExtended;
       }
-      return FDCan::kStandard;
+      return FT::kStandard;
     };
 
     // Update our filters.
@@ -194,13 +212,13 @@ class CanManager::Impl {
       switch (value) {
         case 0:
         case 1: {
-          return FDCan::kAccept;
+          return FDCan::FilterAction::kAccept;
         }
         case 2: {
-          return FDCan::kReject;
+          return FDCan::FilterAction::kReject;
         }
       }
-      return FDCan::kReject;
+      return FDCan::FilterAction::kReject;
     };
 
     can_.emplace([&]() {
@@ -244,9 +262,67 @@ class CanManager::Impl {
     WriteOK(response);
   }
 
-  void Command_Send(std::string_view command, std::string_view data,
+  void Command_Send(std::string_view command, std::string_view remainder,
                     const micro::CommandManager::Response& response) {
-    WriteMessage("ERR not implemented\r\n", response);
+    if (!can_) {
+      WriteMessage("ERR not in BusOn state\r\n", response);
+      return;
+    }
+
+    base::Tokenizer tokenizer(remainder, " ");
+    const auto hexid = tokenizer.next();
+    const auto hexdata = tokenizer.next();
+    if (hexdata.size() == 0) {
+      WriteMessage("ERR insufficient options\r\n", response);
+      return;
+    }
+
+    FDCan::SendOptions opts;
+    using FO = FDCan::Override;
+
+    for (char c : tokenizer.remaining()) {
+      if (c == 'B') { opts.bitrate_switch = FO::kRequire; }
+      else if (c == 'b') { opts.bitrate_switch = FO::kDisable; }
+      else if (c == 'F') { opts.fdcan_frame = FO::kRequire; }
+      else if (c == 'f') { opts.fdcan_frame = FO::kDisable; }
+      else if (c == 'R') { opts.remote_frame = FO::kRequire; }
+      else if (c == 'r') { opts.remote_frame = FO::kDisable; }
+      else {
+        WriteMessage("ERR unknown flag\r\n", response);
+        return;
+      }
+    }
+
+    const auto id = std::strtol(hexid.data(), nullptr, 0);
+    if (id < 0 || id >= (1 << 29)) {
+      WriteMessage("ERR bad id\r\n", response);
+      return;
+    }
+
+    if ((hexdata.size() % 2) != 0) {
+      WriteMessage("ERR data invalid length\r\n", response);
+      return;
+    }
+
+    char data[64] = {};
+    ssize_t bytes = 0;
+
+    for (size_t i = 0; i < hexdata.size(); i += 2) {
+      int value = ParseHexByte(&hexdata[i]);
+      if (value < 0) {
+        WriteMessage("ERR invalid data\r\n", response);
+        return;
+      }
+      data[bytes++] = value;
+    }
+
+    if (command == "std") {
+      opts.extended_id = FDCan::Override::kDisable;
+    } else if (command == "ext") {
+      opts.extended_id = FDCan::Override::kRequire;
+    }
+
+    can_->Send(id, std::string_view(data, bytes), opts);
   }
 
   void Command_Status(const micro::CommandManager::Response& response) {

@@ -118,6 +118,10 @@ Send an extended CAN frame.  The following format is used.
 
 The allowable options are the same as for `can std`.
 
+### *can send* ###
+
+Just like `std` or `ext`, but auto-detect the ID type.
+
 ### *can status* ###
 
 Report the current mode and status of various flags.

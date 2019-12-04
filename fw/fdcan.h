@@ -24,19 +24,19 @@ namespace fw {
 
 class FDCan {
  public:
-  enum FilterAction {
+  enum class FilterAction {
     kDisable,
     kAccept,
     kReject,
   };
 
-  enum FilterMode {
+  enum class FilterMode {
     kRange,
     kDual,
     kMask,
   };
 
-  enum FilterType {
+  enum class FilterType {
     kStandard,
     kExtended,
   };
@@ -45,9 +45,9 @@ class FDCan {
     uint32_t id1 = 0;
     uint32_t id2 = 0;
 
-    FilterMode mode = kRange;
-    FilterAction action = kDisable;
-    FilterType type = kStandard;
+    FilterMode mode = FilterMode::kRange;
+    FilterAction action = FilterAction::kDisable;
+    FilterType type = FilterType::kStandard;
   };
 
   struct Options {
@@ -57,15 +57,16 @@ class FDCan {
     int fast_bitrate = 5000000;
 
     bool automatic_retransmission = false;
+    bool remote_frame = false;
     bool fdcan_frame = false;
     bool bitrate_switch = false;
     bool restricted_mode = false;
     bool bus_monitor = false;
 
-    FilterAction global_std_action = kAccept;
-    FilterAction global_ext_action = kAccept;
-    FilterAction global_remote_std_action = kAccept;
-    FilterAction global_remote_ext_action = kAccept;
+    FilterAction global_std_action = FilterAction::kAccept;
+    FilterAction global_ext_action = FilterAction::kAccept;
+    FilterAction global_remote_std_action = FilterAction::kAccept;
+    FilterAction global_remote_ext_action = FilterAction::kAccept;
 
     const Filter* filter_begin = nullptr;
     const Filter* filter_end = nullptr;
@@ -75,13 +76,30 @@ class FDCan {
 
   FDCan(const Options& options = Options());
 
-  void Send(uint16_t dest_id,
-            std::string_view data);
+  enum class Override {
+    kDefault,
+    kRequire,
+    kDisable,
+  };
+
+  struct SendOptions {
+    Override bitrate_switch = Override::kDefault;
+    Override fdcan_frame = Override::kDefault;
+    Override remote_frame = Override::kDefault;
+    Override extended_id = Override::kDefault;
+
+    SendOptions() {}
+  };
+
+  void Send(uint32_t dest_id,
+            std::string_view data,
+            const SendOptions& = SendOptions());
 
   /// @return true if a packet was available.
   bool Poll(FDCAN_RxHeaderTypeDef* header, mjlib::base::string_span);
 
  private:
+  const Options options_;
   FDCAN_GlobalTypeDef* can_ = nullptr;
   FDCAN_HandleTypeDef hfdcan1_;
   uint32_t last_tx_request_ = 0;

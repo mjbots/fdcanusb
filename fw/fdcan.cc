@@ -42,7 +42,8 @@ constexpr uint32_t RoundUpDlc(size_t size) {
 }
 }
 
-FDCan::FDCan(const Options& options) {
+FDCan::FDCan(const Options& options)
+    : options_(options) {
   __HAL_RCC_FDCAN_CLK_ENABLE();
 
   {
@@ -79,6 +80,7 @@ FDCan::FDCan(const Options& options) {
       options.automatic_retransmission ? ENABLE : DISABLE;
   can.Init.TransmitPause = ENABLE;
   can.Init.ProtocolException = DISABLE;
+
   can.Init.NominalPrescaler = 2;
   can.Init.NominalSyncJumpWidth = 16;
   can.Init.NominalTimeSeg1 = 63;
@@ -91,13 +93,15 @@ FDCan::FDCan(const Options& options) {
       std::count_if(
           options.filter_begin, options.filter_end,
           [](const auto& filter) {
-            return filter.action != kDisable && filter.type == kStandard;
+            return (filter.action != FilterAction::kDisable &&
+                    filter.type == FilterType::kStandard);
           });
   can.Init.ExtFiltersNbr =
       std::count_if(
           options.filter_begin, options.filter_end,
           [](const auto& filter) {
-            return filter.action != kDisable && filter.type == kExtended;
+            return (filter.action != FilterAction::kDisable &&
+                    filter.type == FilterType::kExtended);
           });
   can.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&can) != HAL_OK) {
@@ -109,24 +113,24 @@ FDCan::FDCan(const Options& options) {
   std::for_each(
       options.filter_begin, options.filter_end,
       [&](const auto& filter) {
-        if (filter.action == kDisable) {
+        if (filter.action == FilterAction::kDisable) {
           return;
         }
 
         FDCAN_FilterTypeDef sFilterConfig;
         sFilterConfig.IdType = [&]() {
           switch (filter.type) {
-            case kStandard: return FDCAN_STANDARD_ID;
-            case kExtended: return FDCAN_EXTENDED_ID;
+            case FilterType::kStandard: return FDCAN_STANDARD_ID;
+            case FilterType::kExtended: return FDCAN_EXTENDED_ID;
           }
           mbed_die();
         }();
         sFilterConfig.FilterIndex = [&]() {
           switch (filter.type) {
-            case kStandard: {
+            case FilterType::kStandard: {
               return standard_index++;
             }
-            case kExtended: {
+            case FilterType::kExtended: {
               return extended_index++;
             }
           }
@@ -134,18 +138,18 @@ FDCan::FDCan(const Options& options) {
         }();
         sFilterConfig.FilterType = [&]() {
           switch (filter.mode) {
-            case kRange: return FDCAN_FILTER_RANGE;
-            case kDual: return FDCAN_FILTER_DUAL;
-            case kMask: return FDCAN_FILTER_MASK;
+            case FilterMode::kRange: return FDCAN_FILTER_RANGE;
+            case FilterMode::kDual: return FDCAN_FILTER_DUAL;
+            case FilterMode::kMask: return FDCAN_FILTER_MASK;
           }
           mbed_die();
         }();
 
         sFilterConfig.FilterConfig = [&]() {
           switch (filter.action) {
-            case kDisable:
-            case kReject: return FDCAN_FILTER_REJECT;
-            case kAccept: return FDCAN_FILTER_TO_RXFIFO0;
+            case FilterAction::kDisable:
+            case FilterAction::kReject: return FDCAN_FILTER_REJECT;
+            case FilterAction::kAccept: return FDCAN_FILTER_TO_RXFIFO0;
           }
           mbed_die();
         }();
@@ -161,11 +165,11 @@ FDCan::FDCan(const Options& options) {
 
   auto map_filter_action = [](auto value) {
     switch (value) {
-      case kDisable:
-      case kAccept: {
+      case FilterAction::kDisable:
+      case FilterAction::kAccept: {
         return FDCAN_ACCEPT_IN_RX_FIFO0;
       }
-      case kReject: {
+      case FilterAction::kReject: {
         return FDCAN_REJECT;
       }
     }
@@ -174,11 +178,11 @@ FDCan::FDCan(const Options& options) {
 
   auto map_remote_action = [](auto value) {
     switch (value) {
-      case kDisable:
-      case kAccept: {
+      case FilterAction::kDisable:
+      case FilterAction::kAccept: {
         return FDCAN_FILTER_REMOTE;
       }
-      case kReject: {
+      case FilterAction::kReject: {
         return FDCAN_REJECT_REMOTE;
       }
     }
@@ -207,8 +211,21 @@ FDCan::FDCan(const Options& options) {
   }
 }
 
-void FDCan::Send(uint16_t dest_id,
-                 std::string_view data) {
+namespace {
+bool ApplyOverride(bool value, FDCan::Override o) {
+  using OV = FDCan::Override;
+  switch (o) {
+    case OV::kDefault: return value;
+    case OV::kRequire: return true;
+    case OV::kDisable: return false;
+  }
+  mbed_die();
+}
+}
+
+void FDCan::Send(uint32_t dest_id,
+                 std::string_view data,
+                 const SendOptions& send_options) {
 
   // Abort anything we have started that hasn't finished.
   if (last_tx_request_) {
@@ -217,12 +234,23 @@ void FDCan::Send(uint16_t dest_id,
 
   FDCAN_TxHeaderTypeDef tx_header;
   tx_header.Identifier = dest_id;
-  tx_header.IdType = FDCAN_STANDARD_ID;
-  tx_header.TxFrameType = FDCAN_DATA_FRAME;
+  tx_header.IdType = ApplyOverride(
+      dest_id >= 2048, send_options.extended_id) ?
+      FDCAN_EXTENDED_ID : FDCAN_STANDARD_ID;
+  tx_header.TxFrameType =
+      ApplyOverride(options_.remote_frame,
+                    send_options.remote_frame) ?
+      FDCAN_REMOTE_FRAME : FDCAN_DATA_FRAME;
   tx_header.DataLength = RoundUpDlc(data.size());
   tx_header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-  tx_header.BitRateSwitch = FDCAN_BRS_ON;
-  tx_header.FDFormat = FDCAN_FD_CAN;
+  tx_header.BitRateSwitch =
+      ApplyOverride(options_.bitrate_switch,
+                    send_options.bitrate_switch) ?
+      FDCAN_BRS_ON : FDCAN_BRS_OFF;
+  tx_header.FDFormat =
+      ApplyOverride(options_.fdcan_frame,
+                    send_options.fdcan_frame) ?
+      FDCAN_FD_CAN : FDCAN_CLASSIC_CAN;
   tx_header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
   tx_header.MessageMarker = 0;
 
