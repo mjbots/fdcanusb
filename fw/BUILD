@@ -31,6 +31,7 @@ mbed_binary(
         "stm32_serial.cc",
         "stm32g4_async_uart.h",
         "stm32g4_async_uart.cc",
+        "stm32g4_flash.h",
     ],
     deps = [
         "@mjlib//mjlib/micro:atomic_event_queue",

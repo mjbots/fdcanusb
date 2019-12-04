@@ -23,29 +23,11 @@
 #include "fw/can_manager.h"
 #include "fw/millisecond_timer.h"
 #include "fw/stm32g4_async_uart.h"
+#include "fw/stm32g4_flash.h"
 
 namespace {
 namespace base = mjlib::base;
 namespace micro = mjlib::micro;
-
-class NullFlash : public micro::FlashInterface {
- public:
-  Info GetInfo() override {
-    return {};
-  }
-
-  void Erase() override {
-  }
-
-  void Unlock() override {
-  }
-
-  void Lock() override {
-  }
-
-  void ProgramByte(char*, uint8_t) override {
-  }
-};
 
 void SetupClock() {
   __HAL_RCC_SYSCFG_CLK_ENABLE();
@@ -98,7 +80,7 @@ int main(void) {
 
   micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&uart);
   micro::CommandManager command_manager(&pool, &uart, &write_stream);
-  NullFlash flash_interface;
+  fw::Stm32G4Flash flash_interface;
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
 
@@ -110,6 +92,8 @@ int main(void) {
         options.rd = PA_11;
         return options;
       }());
+
+  persistent_config.Load();
 
   command_manager.AsyncStart();
 

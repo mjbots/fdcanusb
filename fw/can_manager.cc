@@ -32,8 +32,8 @@ namespace {
 constexpr std::size_t kFilterSize = 16;
 
 struct Config {
-  int32_t bitrate = 250000;
-  int32_t fd_bitrate = 250000;
+  int32_t bitrate = 1000000;
+  int32_t fd_bitrate = 2000000;
   bool automatic_retransmission = false;
   bool fdcan_frame = true;
   bool bitrate_switch = true;
