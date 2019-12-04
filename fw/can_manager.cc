@@ -27,6 +27,7 @@ namespace base = mjlib::base;
 namespace micro = mjlib::micro;
 
 namespace fw {
+namespace {
 
 struct Config {
   int32_t bitrate = 250000;
@@ -68,6 +69,28 @@ struct Config {
     a->Visit(MJ_NVP(filter));
   }
 };
+
+int ParseDlc(uint32_t dlc_code) {
+  if (dlc_code == FDCAN_DLC_BYTES_0) { return 0; }
+  if (dlc_code == FDCAN_DLC_BYTES_1) { return 1; }
+  if (dlc_code == FDCAN_DLC_BYTES_2) { return 2; }
+  if (dlc_code == FDCAN_DLC_BYTES_3) { return 3; }
+  if (dlc_code == FDCAN_DLC_BYTES_4) { return 4; }
+  if (dlc_code == FDCAN_DLC_BYTES_5) { return 5; }
+  if (dlc_code == FDCAN_DLC_BYTES_6) { return 6; }
+  if (dlc_code == FDCAN_DLC_BYTES_7) { return 7; }
+  if (dlc_code == FDCAN_DLC_BYTES_8) { return 8; }
+  if (dlc_code == FDCAN_DLC_BYTES_12) { return 12; }
+  if (dlc_code == FDCAN_DLC_BYTES_16) { return 16; }
+  if (dlc_code == FDCAN_DLC_BYTES_20) { return 20; }
+  if (dlc_code == FDCAN_DLC_BYTES_24) { return 24; }
+  if (dlc_code == FDCAN_DLC_BYTES_32) { return 32; }
+  if (dlc_code == FDCAN_DLC_BYTES_48) { return 48; }
+  if (dlc_code == FDCAN_DLC_BYTES_64) { return 64; }
+  mbed_die();
+  return 0;
+}
+}
 
 class CanManager::Impl {
  public:
@@ -147,11 +170,56 @@ class CanManager::Impl {
   }
 
   void Poll() {
+    if (!can_) { return; }
+
+    const bool frame_found = can_->Poll(&rx_header_, rx_data_);
+    if (!frame_found) { return; }
+
+    if (write_outstanding_) { return; }
+
+    write_outstanding_ = true;
+    ssize_t pos = 0;
+    auto fmt = [&](auto ...args) {
+      pos += snprintf(&emit_line_[pos], sizeof(emit_line_) - pos, args...);
+    };
+
+    fmt("rcv %X ", rx_header_.Identifier);
+    const int dlc = ParseDlc(rx_header_.DataLength);
+    for (int i = 0; i < dlc; i++) {
+      fmt("%02X", rx_data_[i]);
+    }
+
+    fmt(" %c %c %c %c f%d\r\n",
+        (rx_header_.IdType == FDCAN_STANDARD_ID) ? 'E' : 'e',
+        (rx_header_.BitRateSwitch == FDCAN_BRS_ON) ? 'B' : 'b',
+        (rx_header_.FDFormat == FDCAN_FD_CAN) ? 'F' : 'f',
+        (rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r',
+        rx_header_.IsFilterMatchingFrame ? rx_header_.FilterIndex : -1);
+
+    stream_.AsyncStart(
+        [this](micro::AsyncWriteStream* write_stream,
+               micro::VoidCallback done_callback) {
+
+          done_callback_ = done_callback;
+          micro::AsyncWrite(*write_stream, emit_line_, [this](auto ec) {
+              auto done = this->done_callback_;
+              this->done_callback_ = {};
+              this->write_outstanding_ = false;
+              done();
+            });
+        });
   }
 
   micro::AsyncExclusive<micro::AsyncWriteStream>& stream_;
   Config config_;
   std::optional<FDCan> can_;
+
+  FDCAN_RxHeaderTypeDef rx_header_ = {};
+  char rx_data_[64] = {};
+  bool write_outstanding_ = false;
+  char emit_line_[256] = {};
+
+  micro::VoidCallback done_callback_;
 };
 
 CanManager::CanManager(micro::Pool& pool,

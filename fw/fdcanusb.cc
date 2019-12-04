@@ -83,13 +83,6 @@ bool g_led_value = false;
 int main(void) {
   SetupClock();
 
-  // fw::FDCan can([]() {
-  //     fw::FDCan::Options options;
-  //     options.td = PA_12;
-  //     options.rd = PA_11;
-  //     return options;
-  //   }());
-
   fw::MillisecondTimer timer;
 
   micro::SizedPool<12288> pool;
@@ -117,12 +110,6 @@ int main(void) {
 
   command_manager.AsyncStart();
 
-  // char tx_data[16] = {0, 3, 7, 12, 18, 25, 33, 42,
-  //                     1, 4, 8, 13, 19, 26, 34, 43};
-
-  // FDCAN_RxHeaderTypeDef rx_header = {};
-  // char rx_data[8] = {};
-
   while (true) {
     const uint32_t start = timer.read_ms();
     while (true) {
@@ -130,14 +117,8 @@ int main(void) {
       if (now - start > 1000) { break; }
 
       uart.Poll();
-
-      // if (can.Poll(&rx_header, base::string_span(rx_data))) {
-      //   g_led_value = !g_led_value;
-      //   led1.write(g_led_value);
-      // }
+      can_manager.Poll();
     }
-
-    // can.Send(0x321, tx_data);
   }
 }
 
