@@ -293,7 +293,7 @@ class CanManager::Impl {
       }
     }
 
-    const auto id = std::strtol(hexid.data(), nullptr, 0);
+    const auto id = std::strtol(hexid.data(), nullptr, 16);
     if (id < 0 || id >= (1 << 29)) {
       WriteMessage("ERR bad id\r\n", response);
       return;
