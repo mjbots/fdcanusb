@@ -323,6 +323,8 @@ class CanManager::Impl {
     }
 
     can_->Send(id, std::string_view(data, bytes), opts);
+
+    WriteOK(response);
   }
 
   void Command_Status(const micro::CommandManager::Response& response) {
