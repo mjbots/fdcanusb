@@ -24,6 +24,32 @@ namespace fw {
 
 class FDCan {
  public:
+  enum FilterAction {
+    kDisable,
+    kAccept,
+    kReject,
+  };
+
+  enum FilterMode {
+    kRange,
+    kDual,
+    kMask,
+  };
+
+  enum FilterType {
+    kStandard,
+    kExtended,
+  };
+
+  struct Filter {
+    uint32_t id1 = 0;
+    uint32_t id2 = 0;
+
+    FilterMode mode = kRange;
+    FilterAction action = kDisable;
+    FilterType type = kStandard;
+  };
+
   struct Options {
     PinName td = NC;
     PinName rd = NC;
@@ -35,6 +61,14 @@ class FDCan {
     bool bitrate_switch = false;
     bool restricted_mode = false;
     bool bus_monitor = false;
+
+    FilterAction global_std_action = kAccept;
+    FilterAction global_ext_action = kAccept;
+    FilterAction global_remote_std_action = kAccept;
+    FilterAction global_remote_ext_action = kAccept;
+
+    const Filter* filter_begin = nullptr;
+    const Filter* filter_end = nullptr;
 
     Options() {}
   };

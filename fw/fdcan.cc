@@ -87,36 +87,113 @@ FDCan::FDCan(const Options& options) {
   can.Init.DataSyncJumpWidth = 2;
   can.Init.DataTimeSeg1 = 3;
   can.Init.DataTimeSeg2 = 2;
-  can.Init.StdFiltersNbr = 1;
-  can.Init.ExtFiltersNbr = 0;
+  can.Init.StdFiltersNbr =
+      std::count_if(
+          options.filter_begin, options.filter_end,
+          [](const auto& filter) {
+            return filter.action != kDisable && filter.type == kStandard;
+          });
+  can.Init.ExtFiltersNbr =
+      std::count_if(
+          options.filter_begin, options.filter_end,
+          [](const auto& filter) {
+            return filter.action != kDisable && filter.type == kExtended;
+          });
   can.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&can) != HAL_OK) {
     mbed_die();
   }
 
-  /* Configure Rx filter */
-  {
-    FDCAN_FilterTypeDef sFilterConfig;
-    sFilterConfig.IdType = FDCAN_STANDARD_ID;
-    sFilterConfig.FilterIndex = 0;
-    sFilterConfig.FilterType = FDCAN_FILTER_MASK;
-    sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-    sFilterConfig.FilterID1 = 0x321;
-    sFilterConfig.FilterID2 = 0x7FF;
-    if (HAL_FDCAN_ConfigFilter(&can, &sFilterConfig) != HAL_OK)
-    {
-      mbed_die();
-    }
-  }
+  int standard_index = 0;
+  int extended_index = 0;
+  std::for_each(
+      options.filter_begin, options.filter_end,
+      [&](const auto& filter) {
+        if (filter.action == kDisable) {
+          return;
+        }
 
+        FDCAN_FilterTypeDef sFilterConfig;
+        sFilterConfig.IdType = [&]() {
+          switch (filter.type) {
+            case kStandard: return FDCAN_STANDARD_ID;
+            case kExtended: return FDCAN_EXTENDED_ID;
+          }
+          mbed_die();
+        }();
+        sFilterConfig.FilterIndex = [&]() {
+          switch (filter.type) {
+            case kStandard: {
+              return standard_index++;
+            }
+            case kExtended: {
+              return extended_index++;
+            }
+          }
+          mbed_die();
+        }();
+        sFilterConfig.FilterType = [&]() {
+          switch (filter.mode) {
+            case kRange: return FDCAN_FILTER_RANGE;
+            case kDual: return FDCAN_FILTER_DUAL;
+            case kMask: return FDCAN_FILTER_MASK;
+          }
+          mbed_die();
+        }();
+
+        sFilterConfig.FilterConfig = [&]() {
+          switch (filter.action) {
+            case kDisable:
+            case kReject: return FDCAN_FILTER_REJECT;
+            case kAccept: return FDCAN_FILTER_TO_RXFIFO0;
+          }
+          mbed_die();
+        }();
+        sFilterConfig.FilterID1 = filter.id1;
+        sFilterConfig.FilterID2 = filter.id2;
+
+        if (HAL_FDCAN_ConfigFilter(&can, &sFilterConfig) != HAL_OK)
+        {
+          mbed_die();
+        }
+
+      });
+
+  auto map_filter_action = [](auto value) {
+    switch (value) {
+      case kDisable:
+      case kAccept: {
+        return FDCAN_ACCEPT_IN_RX_FIFO0;
+      }
+      case kReject: {
+        return FDCAN_REJECT;
+      }
+    }
+    mbed_die();
+  };
+
+  auto map_remote_action = [](auto value) {
+    switch (value) {
+      case kDisable:
+      case kAccept: {
+        return FDCAN_FILTER_REMOTE;
+      }
+      case kReject: {
+        return FDCAN_REJECT_REMOTE;
+      }
+    }
+    mbed_die();
+  };
 
   /* Configure global filter:
      Filter all remote frames with STD and EXT ID
      Reject non matching frames with STD ID and EXT ID */
   if (HAL_FDCAN_ConfigGlobalFilter(
-          &can, FDCAN_REJECT, FDCAN_REJECT,
-          FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE) != HAL_OK)
-  {
+          &can,
+          map_filter_action(options.global_std_action),
+          map_filter_action(options.global_ext_action),
+          map_remote_action(options.global_remote_std_action),
+          map_remote_action(options.global_remote_ext_action)) != HAL_OK) {
     mbed_die();
   }
 

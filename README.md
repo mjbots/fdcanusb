@@ -167,6 +167,13 @@ The following items may be configured.
 * *can.bus_monitor* - Transmit nothing.
 * *can.termination* - Enable the onboard terminator
 
+* *can.global.std_action*
+* *can.global.ext_action*
+* *can.global.remote_std_action*
+* *can.global.remote_ext_action*
+  * 0/1 - accept
+  * 2 - reject
+
 * *can.filter.N.id1* - first ID
 * *can.filter.N.id2* - second ID or bitmask
 * *can.filter.N.mode*

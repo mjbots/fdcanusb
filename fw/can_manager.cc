@@ -29,6 +29,8 @@ namespace micro = mjlib::micro;
 namespace fw {
 namespace {
 
+constexpr std::size_t kFilterSize = 16;
+
 struct Config {
   int32_t bitrate = 250000;
   int32_t fd_bitrate = 250000;
@@ -38,6 +40,23 @@ struct Config {
   bool restricted_mode = false;
   bool bus_monitor = false;
   bool termination = true;
+
+  struct Global {
+    uint8_t std_action = 0;
+    uint8_t ext_action = 0;
+    uint8_t remote_std_action = 0;
+    uint8_t remote_ext_action = 0;
+
+    template <typename Archive>
+    void Serialize(Archive* a) {
+      a->Visit(MJ_NVP(std_action));
+      a->Visit(MJ_NVP(ext_action));
+      a->Visit(MJ_NVP(remote_std_action));
+      a->Visit(MJ_NVP(remote_ext_action));
+    }
+  };
+
+  Global global;
 
   struct Filter {
     uint32_t id1 = 0;
@@ -56,7 +75,7 @@ struct Config {
     }
   };
 
-  std::array<Filter, 16> filter = { {} };
+  std::array<Filter, kFilterSize> filter = { {} };
 
   template <typename Archive>
   void Serialize(Archive* a) {
@@ -68,6 +87,7 @@ struct Config {
     a->Visit(MJ_NVP(restricted_mode));
     a->Visit(MJ_NVP(bus_monitor));
     a->Visit(MJ_NVP(termination));
+    a->Visit(MJ_NVP(global));
     a->Visit(MJ_NVP(filter));
   }
 };
@@ -132,6 +152,57 @@ class CanManager::Impl {
       return;
     }
 
+    auto map_mode = [](auto value) {
+      switch (value) {
+        case 0: return FDCan::kRange;
+        case 1: return FDCan::kDual;
+        case 2: return FDCan::kMask;
+      }
+      return FDCan::kMask;
+    };
+
+    auto map_action = [](auto value) {
+      switch (value) {
+        case 0: return FDCan::kDisable;
+        case 1: return FDCan::kAccept;
+        case 2: return FDCan::kReject;
+      }
+      return FDCan::kDisable;
+    };
+
+    auto map_type = [](auto value) {
+      switch (value) {
+        case 0: return FDCan::kStandard;
+        case 1: return FDCan::kExtended;
+      }
+      return FDCan::kStandard;
+    };
+
+    // Update our filters.
+    for (size_t i = 0; i < config_.filter.size(); i++) {
+      const auto& src = config_.filter[i];
+      auto& dst = fdcan_filter_[i];
+
+      dst.id1 = src.id1;
+      dst.id2 = src.id2;
+      dst.mode = map_mode(src.mode);
+      dst.action = map_action(src.action);
+      dst.type = map_type(src.type);
+    }
+
+    auto map_global_action = [](auto value) {
+      switch (value) {
+        case 0:
+        case 1: {
+          return FDCan::kAccept;
+        }
+        case 2: {
+          return FDCan::kReject;
+        }
+      }
+      return FDCan::kReject;
+    };
+
     can_.emplace([&]() {
         FDCan::Options options;
         options.td = options_.td;
@@ -144,6 +215,18 @@ class CanManager::Impl {
         options.bitrate_switch = config_.bitrate_switch;
         options.restricted_mode = config_.restricted_mode;
         options.bus_monitor = config_.bus_monitor;
+
+        options.global_std_action =
+            map_global_action(config_.global.std_action);
+        options.global_ext_action =
+            map_global_action(config_.global.ext_action);
+        options.global_remote_std_action =
+            map_global_action(config_.global.remote_std_action);
+        options.global_remote_ext_action =
+            map_global_action(config_.global.remote_ext_action);
+
+        options.filter_begin = fdcan_filter_.begin();
+        options.filter_end = fdcan_filter_.end();
 
         return options;
       }());
@@ -200,7 +283,7 @@ class CanManager::Impl {
     }
 
     fmt(" %c %c %c %c f%d\r\n",
-        (rx_header_.IdType == FDCAN_STANDARD_ID) ? 'E' : 'e',
+        (rx_header_.IdType == FDCAN_EXTENDED_ID) ? 'E' : 'e',
         (rx_header_.BitRateSwitch == FDCAN_BRS_ON) ? 'B' : 'b',
         (rx_header_.FDFormat == FDCAN_FD_CAN) ? 'F' : 'f',
         (rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r',
@@ -224,6 +307,7 @@ class CanManager::Impl {
   const Options options_;
   Config config_;
   std::optional<FDCan> can_;
+  std::array<FDCan::Filter, kFilterSize> fdcan_filter_ = { {} };
 
   FDCAN_RxHeaderTypeDef rx_header_ = {};
   char rx_data_[64] = {};
