@@ -21,6 +21,8 @@ mbed_binary(
     srcs = [
         "error.h",
         "error.cc",
+        "fdcan.h",
+        "fdcan.cc",
         "fdcanusb.cc",
         "millisecond_timer.h",
         "stm32_serial.h",
