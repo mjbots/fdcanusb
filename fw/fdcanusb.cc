@@ -77,9 +77,6 @@ void SetupClock() {
 }
 }
 
-DigitalOut led1(PA_5);
-bool g_led_value = false;
-
 int main(void) {
   SetupClock();
 
@@ -106,7 +103,13 @@ int main(void) {
       pool, command_manager, flash_interface);
 
   fw::CanManager can_manager(
-      pool, persistent_config, command_manager, write_stream);
+      pool, persistent_config, command_manager, write_stream,
+      []() {
+        fw::CanManager::Options options;
+        options.td = PA_12;
+        options.rd = PA_11;
+        return options;
+      }());
 
   command_manager.AsyncStart();
 

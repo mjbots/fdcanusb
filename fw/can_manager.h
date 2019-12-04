@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mbed.h"
+
 #include "mjlib/micro/async_exclusive.h"
 #include "mjlib/micro/async_stream.h"
 #include "mjlib/micro/command_manager.h"
@@ -24,11 +26,16 @@ namespace fw {
 
 class CanManager {
  public:
+  struct Options {
+    PinName td = NC;
+    PinName rd = NC;
+  };
   CanManager(mjlib::micro::Pool&,
              mjlib::micro::PersistentConfig&,
              mjlib::micro::CommandManager&,
              mjlib::micro::AsyncExclusive<
-             mjlib::micro::AsyncWriteStream>& stream);
+             mjlib::micro::AsyncWriteStream>& stream,
+             const Options&);
   ~CanManager();
 
   void Poll();

@@ -165,6 +165,7 @@ The following items may be configured.
   for the data and CRC fields.
 * *can.restricted_mode* - Only transmit acknowledgements.
 * *can.bus_monitor* - Transmit nothing.
+* *can.termination* - Enable the onboard terminator
 
 * *can.filter.N.id1* - first ID
 * *can.filter.N.id2* - second ID or bitmask

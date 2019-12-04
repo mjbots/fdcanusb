@@ -30,6 +30,12 @@ class FDCan {
     int slow_bitrate = 1000000;
     int fast_bitrate = 5000000;
 
+    bool automatic_retransmission = false;
+    bool fdcan_frame = false;
+    bool bitrate_switch = false;
+    bool restricted_mode = false;
+    bool bus_monitor = false;
+
     Options() {}
   };
 

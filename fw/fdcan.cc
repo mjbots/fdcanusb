@@ -59,9 +59,24 @@ FDCan::FDCan(const Options& options) {
 
   can.Instance = FDCAN1;
   can.Init.ClockDivider = FDCAN_CLOCK_DIV1;
-  can.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
-  can.Init.Mode = FDCAN_MODE_NORMAL;
-  can.Init.AutoRetransmission = DISABLE;
+  can.Init.FrameFormat = [&]() {
+    if (options.fdcan_frame && options.bitrate_switch) {
+      return FDCAN_FRAME_FD_BRS;
+    } else if (options.fdcan_frame) {
+      return FDCAN_FRAME_FD_NO_BRS;
+    }
+    return FDCAN_FRAME_CLASSIC;
+  }();
+  can.Init.Mode = [&]() {
+    if (options.bus_monitor) {
+      return FDCAN_MODE_BUS_MONITORING;
+    } else if (options.restricted_mode) {
+      return FDCAN_MODE_RESTRICTED_OPERATION;
+    }
+    return FDCAN_MODE_NORMAL;
+  }();
+  can.Init.AutoRetransmission =
+      options.automatic_retransmission ? ENABLE : DISABLE;
   can.Init.TransmitPause = ENABLE;
   can.Init.ProtocolException = DISABLE;
   can.Init.NominalPrescaler = 2;

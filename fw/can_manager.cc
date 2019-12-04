@@ -37,6 +37,7 @@ struct Config {
   bool bitrate_switch = true;
   bool restricted_mode = false;
   bool bus_monitor = false;
+  bool termination = true;
 
   struct Filter {
     uint32_t id1 = 0;
@@ -66,6 +67,7 @@ struct Config {
     a->Visit(MJ_NVP(bitrate_switch));
     a->Visit(MJ_NVP(restricted_mode));
     a->Visit(MJ_NVP(bus_monitor));
+    a->Visit(MJ_NVP(termination));
     a->Visit(MJ_NVP(filter));
   }
 };
@@ -96,8 +98,10 @@ class CanManager::Impl {
  public:
   Impl(micro::PersistentConfig& persistent_config,
        micro::CommandManager& command_manager,
-       micro::AsyncExclusive<micro::AsyncWriteStream>& stream)
-      : stream_(stream) {
+       micro::AsyncExclusive<micro::AsyncWriteStream>& stream,
+       const Options& options)
+      : stream_(stream),
+        options_(options) {
     persistent_config.Register("can", &config_, [this]() {});
     command_manager.Register("can", [this](auto&& command, auto&& response) {
         this->Command(command, response);
@@ -130,11 +134,17 @@ class CanManager::Impl {
 
     can_.emplace([&]() {
         FDCan::Options options;
-        options.td = PA_12;
-        options.rd = PA_11;
+        options.td = options_.td;
+        options.rd = options_.rd;
 
         options.slow_bitrate = config_.bitrate;
         options.fast_bitrate = config_.fd_bitrate;
+        options.automatic_retransmission = config_.automatic_retransmission;
+        options.fdcan_frame = config_.fdcan_frame;
+        options.bitrate_switch = config_.bitrate_switch;
+        options.restricted_mode = config_.restricted_mode;
+        options.bus_monitor = config_.bus_monitor;
+
         return options;
       }());
 
@@ -194,7 +204,7 @@ class CanManager::Impl {
         (rx_header_.BitRateSwitch == FDCAN_BRS_ON) ? 'B' : 'b',
         (rx_header_.FDFormat == FDCAN_FD_CAN) ? 'F' : 'f',
         (rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r',
-        rx_header_.IsFilterMatchingFrame ? rx_header_.FilterIndex : -1);
+        !rx_header_.IsFilterMatchingFrame ? rx_header_.FilterIndex : -1);
 
     stream_.AsyncStart(
         [this](micro::AsyncWriteStream* write_stream,
@@ -211,6 +221,7 @@ class CanManager::Impl {
   }
 
   micro::AsyncExclusive<micro::AsyncWriteStream>& stream_;
+  const Options options_;
   Config config_;
   std::optional<FDCan> can_;
 
@@ -225,8 +236,9 @@ class CanManager::Impl {
 CanManager::CanManager(micro::Pool& pool,
                        micro::PersistentConfig& persistent_config,
                        micro::CommandManager& command_manager,
-                       micro::AsyncExclusive<micro::AsyncWriteStream>& stream)
-    : impl_(&pool, persistent_config, command_manager, stream) {}
+                       micro::AsyncExclusive<micro::AsyncWriteStream>& stream,
+                       const Options& options)
+    : impl_(&pool, persistent_config, command_manager, stream, options) {}
 
 CanManager::~CanManager() {}
 
