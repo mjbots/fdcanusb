@@ -282,7 +282,7 @@ int main(void) {
         led1.write(g_led_value);
       }
 
-      if (!read_outstanding) {
+      if (!read_outstanding && !write_outstanding) {
         read_outstanding = true;
         uart.AsyncReadSome(
             serial_rx,
