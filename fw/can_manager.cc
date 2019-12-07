@@ -33,13 +33,14 @@ constexpr std::size_t kFilterSize = 16;
 
 struct Config {
   int32_t bitrate = 1000000;
-  int32_t fd_bitrate = 2000000;
+  int32_t fd_bitrate = 5000000;
   bool automatic_retransmission = false;
   bool fdcan_frame = true;
   bool bitrate_switch = true;
   bool restricted_mode = false;
   bool bus_monitor = false;
   bool termination = true;
+  bool autostart = true;
 
   struct Global {
     uint8_t std_action = 0;
@@ -87,6 +88,7 @@ struct Config {
     a->Visit(MJ_NVP(restricted_mode));
     a->Visit(MJ_NVP(bus_monitor));
     a->Visit(MJ_NVP(termination));
+    a->Visit(MJ_NVP(autostart));
     a->Visit(MJ_NVP(global));
     a->Visit(MJ_NVP(filter));
   }
@@ -143,6 +145,12 @@ class CanManager::Impl {
       });
   }
 
+  void Start() {
+    if (!config_.autostart) { return; }
+
+    StartCan();
+  }
+
   void Command(const std::string_view& command,
                const micro::CommandManager::Response& response) {
     base::Tokenizer tokenizer(command, " ");
@@ -167,6 +175,12 @@ class CanManager::Impl {
       return;
     }
 
+    StartCan();
+
+    WriteOK(response);
+  }
+
+  void StartCan() {
     auto map_mode = [](auto value) {
       using FM = FDCan::FilterMode;
       switch (value) {
@@ -248,8 +262,6 @@ class CanManager::Impl {
 
         return options;
       }());
-
-    WriteOK(response);
   }
 
   void Command_BusOff(const micro::CommandManager::Response& response) {
@@ -423,6 +435,10 @@ CanManager::~CanManager() {}
 
 void CanManager::Poll() {
   impl_->Poll();
+}
+
+void CanManager::Start() {
+  impl_->Start();
 }
 
 }

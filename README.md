@@ -170,6 +170,7 @@ The following items may be configured.
 * *can.restricted_mode* - Only transmit acknowledgements.
 * *can.bus_monitor* - Transmit nothing.
 * *can.termination* - Enable the onboard terminator
+* *can.autostart* - Enter BusOn immediately at power-on
 
 * *can.global.std_action*
 * *can.global.ext_action*

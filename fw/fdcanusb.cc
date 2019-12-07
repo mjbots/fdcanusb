@@ -96,6 +96,7 @@ int main(void) {
   persistent_config.Load();
 
   command_manager.AsyncStart();
+  can_manager.Start();
 
   while (true) {
     const uint32_t start = timer.read_ms();
