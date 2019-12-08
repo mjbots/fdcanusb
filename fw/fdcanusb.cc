@@ -74,12 +74,19 @@ int main(void) {
         options.tx = PA_2;
         options.rx = PA_3;
         options.baud_rate = 115200;
+        options.rx_buffer_size = 300;
 
         return options;
       }());
 
   micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&uart);
-  micro::CommandManager command_manager(&pool, &uart, &write_stream);
+  micro::CommandManager command_manager(
+      &pool, &uart, &write_stream,
+      []() {
+        micro::CommandManager::Options options;
+        options.max_line_length = 300;
+        return options;
+      }());
   fw::Stm32G4Flash flash_interface;
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
