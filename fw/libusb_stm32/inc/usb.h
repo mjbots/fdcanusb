@@ -128,6 +128,20 @@
     #define usbd_hw usbd_otgfs
     #endif
 
+#elif defined(TARGET_STM32G474xE)
+
+    #define USBD_STM32G474
+
+    #if !defined(__ASSEMBLER__)
+    extern const struct usbd_driver usbd_devfs;
+    extern const struct usbd_driver usbd_devfs_asm;
+    #if defined(USBD_ASM_DRIVER)
+    #define usbd_hw usbd_devfs_asm
+    #else
+    #define usbd_hw usbd_devfs
+    #endif
+    #endif
+
 #else
     #error Unsupported STM32 family
 #endif

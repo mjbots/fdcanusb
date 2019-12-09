@@ -31,13 +31,23 @@ mbed_binary(
         "stm32_serial.cc",
         "stm32g4_async_uart.h",
         "stm32g4_async_uart.cc",
+        "stm32g4_async_usb_cdc.h",
+        "stm32g4_async_usb_cdc.cc",
         "stm32g4_flash.h",
+        "libusb_stm32/inc/usb.h",
+        "libusb_stm32/inc/usb_cdc.h",
+        "libusb_stm32/inc/usbd_core.h",
+        "libusb_stm32/inc/usb_std.h",
+        "libusb_stm32/src/usbd_core.c",
     ],
     deps = [
         "@mjlib//mjlib/micro:atomic_event_queue",
         "@mjlib//mjlib/micro:callback_table",
         "@mjlib//mjlib/micro:command_manager",
         "@mjlib//mjlib/micro:persistent_config",
+    ],
+    includes = [
+        "libusb_stm32/inc",
     ],
 )
 
