@@ -320,7 +320,7 @@ static void usbd_process_ep0 (usbd_device *dev, uint8_t event, uint8_t ep) {
         /* force switch to setup state */
         dev->status.control_state = usbd_ctl_idle;
         dev->complete_callback = 0;
-        break;
+        // fall through
     case usbd_evt_eprx:
         return usbd_process_eprx(dev, ep);
     case usbd_evt_eptx:
