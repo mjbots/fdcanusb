@@ -24,6 +24,7 @@
 #include "fw/millisecond_timer.h"
 #include "fw/stm32g4_async_uart.h"
 #include "fw/stm32g4_flash.h"
+#include "fw/stm32g4_async_usb_cdc.h"
 
 namespace {
 namespace base = mjlib::base;
@@ -65,6 +66,9 @@ int main(void) {
   fw::MillisecondTimer timer;
 
   micro::SizedPool<12288> pool;
+
+  fw::Stm32G4AsyncUsbCdc usb(&pool, {});
+
   fw::Stm32G4AsyncUart uart(
       &pool,
       &timer,
@@ -79,9 +83,9 @@ int main(void) {
         return options;
       }());
 
-  micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&uart);
+  micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&usb);
   micro::CommandManager command_manager(
-      &pool, &uart, &write_stream,
+      &pool, &usb, &write_stream,
       []() {
         micro::CommandManager::Options options;
         options.max_line_length = 300;
@@ -113,6 +117,7 @@ int main(void) {
 
       uart.Poll();
       can_manager.Poll();
+      usb.Poll();
     }
   }
 }
