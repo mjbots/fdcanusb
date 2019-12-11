@@ -586,10 +586,6 @@
 <pad name="8" x="1.3716" y="1.27" drill="1.016" shape="octagon"/>
 <pad name="9" x="4.1148" y="1.27" drill="1.016" shape="octagon"/>
 <text x="-15.24" y="-6.35" size="1.778" layer="25" ratio="10">&gt;NAME</text>
-<text x="-7.62" y="-1.905" size="1.27" layer="21" ratio="10">1</text>
-<text x="6.985" y="-1.905" size="1.27" layer="21" ratio="10">5</text>
-<text x="6.985" y="0.635" size="1.27" layer="21" ratio="10">9</text>
-<text x="-7.62" y="0.635" size="1.27" layer="21" ratio="10">6</text>
 <rectangle x1="-9.271" y1="6.858" x2="9.271" y2="7.62" layer="21"/>
 <rectangle x1="-15.494" y1="11.176" x2="15.494" y2="11.684" layer="21"/>
 <hole x="-12.5222" y="0" drill="3.302"/>
@@ -2534,7 +2530,7 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <wire x1="264.16" y1="-63.5" x2="-5.08" y2="-63.5" width="0.1524" layer="90"/>
 <wire x1="-5.08" y1="-63.5" x2="-5.08" y2="88.9" width="0.1524" layer="90"/>
 <text x="0" y="73.66" size="7.62" layer="90">MOUNTS / POWER</text>
-<text x="-5.08" y="93.98" size="3.81" layer="90">fdcanusb r2
+<text x="-5.08" y="93.98" size="3.81" layer="90">fdcanusb r2.1
 (c) 2019 Josh Pieper, jjp@pobox.com
 Licensed under the Apache 2.0 License
 https://www.apache.org/licenses/LICENSE-2.0</text>
@@ -3037,11 +3033,6 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 </net>
 <net name="CAN_N" class="2">
 <segment>
-<pinref part="J2" gate="G$1" pin="2"/>
-<wire x1="449.58" y1="17.78" x2="434.34" y2="17.78" width="0.1524" layer="91"/>
-<label x="434.34" y="17.78" size="1.778" layer="95"/>
-</segment>
-<segment>
 <pinref part="U3" gate="G$1" pin="CANL"/>
 <wire x1="370.84" y1="43.18" x2="401.32" y2="43.18" width="0.1524" layer="91"/>
 <label x="391.16" y="43.18" size="1.778" layer="95"/>
@@ -3053,13 +3044,13 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <pinref part="U4" gate="A" pin="SW2"/>
 <wire x1="398.78" y1="-45.72" x2="406.4" y2="-45.72" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="J2" gate="G$1" pin="4"/>
+<wire x1="449.58" y1="12.7" x2="429.26" y2="12.7" width="0.1524" layer="91"/>
+<label x="429.26" y="12.7" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="CAN_P" class="2">
-<segment>
-<pinref part="J2" gate="G$1" pin="7"/>
-<wire x1="464.82" y1="15.24" x2="485.14" y2="15.24" width="0.1524" layer="91"/>
-<label x="477.52" y="15.24" size="1.778" layer="95"/>
-</segment>
 <segment>
 <pinref part="U3" gate="G$1" pin="CANH"/>
 <wire x1="370.84" y1="45.72" x2="401.32" y2="45.72" width="0.1524" layer="91"/>
@@ -3070,6 +3061,11 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <wire x1="406.4" y1="-17.78" x2="406.4" y2="-15.24" width="0.1524" layer="91"/>
 <wire x1="406.4" y1="-15.24" x2="436.88" y2="-15.24" width="0.1524" layer="91"/>
 <label x="426.72" y="-15.24" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="J2" gate="G$1" pin="8"/>
+<wire x1="464.82" y1="12.7" x2="487.68" y2="12.7" width="0.1524" layer="91"/>
+<label x="477.52" y="12.7" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$3" class="0">
