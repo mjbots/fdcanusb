@@ -63,6 +63,8 @@ void SetupClock() {
 int main(void) {
   SetupClock();
 
+  DigitalOut power_led{PB_5, 1};
+
   fw::MillisecondTimer timer;
 
   micro::SizedPool<12288> pool;
@@ -121,6 +123,7 @@ int main(void) {
     }
 
     can_manager.Poll10Ms();
+    usb.Poll10Ms();
   }
 }
 

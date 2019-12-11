@@ -200,6 +200,10 @@ class Stm32G4AsyncUsbCdc::Impl {
     usbd_poll(&udev_);
   }
 
+  void Poll10Ms() {
+    led_com_.write(0);
+  }
+
   void AsyncReadSome(const mjlib::base::string_span& data,
                      const micro::SizeCallback& callback) {
     MJ_ASSERT(!current_read_callback_);
@@ -300,6 +304,8 @@ class Stm32G4AsyncUsbCdc::Impl {
       return;
     }
 
+    led_com_.write(1);
+
     auto actual = usbd_ep_read(&udev_, ep, current_read_data_.data(),
                                std::min(CDC_DATA_SZ, current_read_data_.size()));
     if (actual > 0) {
@@ -317,6 +323,8 @@ class Stm32G4AsyncUsbCdc::Impl {
       usbd_ep_write(&udev_, ep, fifo_, 0);
       return;
     }
+
+    led_com_.write(1);
 
     const auto to_write = std::min<int>(current_write_data_.size(), CDC_DATA_SZ);
 
@@ -373,6 +381,8 @@ private:
 
   micro::SizeCallback current_read_callback_;
   mjlib::base::string_span current_read_data_;
+
+  DigitalOut led_com_{PB_6};
 };
 
 Stm32G4AsyncUsbCdc::Impl* Stm32G4AsyncUsbCdc::Impl::g_impl = nullptr;
@@ -395,6 +405,10 @@ void Stm32G4AsyncUsbCdc::AsyncWriteSome(const std::string_view& data,
 
 void Stm32G4AsyncUsbCdc::Poll() {
   impl_->Poll();
+}
+
+void Stm32G4AsyncUsbCdc::Poll10Ms() {
+  impl_->Poll10Ms();
 }
 
 }

@@ -36,6 +36,7 @@ class Stm32G4AsyncUsbCdc : public mjlib::micro::AsyncStream {
                       const mjlib::micro::SizeCallback&) override;
 
   void Poll();
+  void Poll10Ms();
 
  private:
   class Impl;
