@@ -139,7 +139,9 @@ class CanManager::Impl {
        const Options& options)
       : stream_(stream),
         options_(options) {
-    persistent_config.Register("can", &config_, [this]() {});
+    persistent_config.Register("can", &config_, [this]() {
+        this->UpdateConfig();
+      });
     command_manager.Register("can", [this](auto&& command, auto&& response) {
         this->Command(command, response);
       });
@@ -149,6 +151,10 @@ class CanManager::Impl {
     if (!config_.autostart) { return; }
 
     StartCan();
+  }
+
+  void UpdateConfig() {
+    can_term_.write(config_.termination ? 0 : 1);
   }
 
   void Command(const std::string_view& command,
@@ -414,6 +420,10 @@ class CanManager::Impl {
   Config config_;
   std::optional<FDCan> can_;
   std::array<FDCan::Filter, kFilterSize> fdcan_filter_ = { {} };
+
+  DigitalOut can_stb_{PB_11, 0};
+  DigitalOut can_shdn_{PB_15, 0};
+  DigitalOut can_term_{PB_14, 0};
 
   FDCAN_RxHeaderTypeDef rx_header_ = {};
   char rx_data_[64] = {};
