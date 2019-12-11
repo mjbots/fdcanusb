@@ -113,12 +113,14 @@ int main(void) {
     const uint32_t start = timer.read_ms();
     while (true) {
       const uint32_t now = timer.read_ms();
-      if (now - start > 1000) { break; }
+      if (now - start > 10) { break; }
 
       uart.Poll();
       can_manager.Poll();
       usb.Poll();
     }
+
+    can_manager.Poll10Ms();
   }
 }
 

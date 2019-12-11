@@ -340,6 +340,8 @@ class CanManager::Impl {
       opts.extended_id = FDCan::Override::kRequire;
     }
 
+    led_tx_.write(1);
+
     can_->Send(id, std::string_view(data, bytes), opts);
 
     WriteOK(response);
@@ -374,6 +376,11 @@ class CanManager::Impl {
     micro::AsyncWrite(*response.stream, message, response.callback);
   }
 
+  void Poll10Ms() {
+    led_rx_.write(0);
+    led_tx_.write(0);
+  }
+
   void Poll() {
     if (!can_) { return; }
 
@@ -381,6 +388,8 @@ class CanManager::Impl {
     if (!frame_found) { return; }
 
     if (write_outstanding_) { return; }
+
+    led_rx_.write(1);
 
     write_outstanding_ = true;
     ssize_t pos = 0;
@@ -425,6 +434,9 @@ class CanManager::Impl {
   DigitalOut can_shdn_{PB_15, 0};
   DigitalOut can_term_{PB_14, 0};
 
+  DigitalOut led_rx_{PB_4, 0};
+  DigitalOut led_tx_{PB_3, 0};
+
   FDCAN_RxHeaderTypeDef rx_header_ = {};
   char rx_data_[64] = {};
   bool write_outstanding_ = false;
@@ -445,6 +457,10 @@ CanManager::~CanManager() {}
 
 void CanManager::Poll() {
   impl_->Poll();
+}
+
+void CanManager::Poll10Ms() {
+  impl_->Poll10Ms();
 }
 
 void CanManager::Start() {

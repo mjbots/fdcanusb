@@ -39,6 +39,7 @@ class CanManager {
   ~CanManager();
 
   void Poll();
+  void Poll10Ms();
   void Start();
 
  private:
