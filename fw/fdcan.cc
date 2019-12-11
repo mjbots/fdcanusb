@@ -96,7 +96,7 @@ FDCan::FDCan(const Options& options)
 
   auto& can = hfdcan1_;
 
-  can.Instance = FDCAN1;
+  can.Instance = can_;
   can.Init.ClockDivider = FDCAN_CLOCK_DIV1;
   can.Init.FrameFormat = [&]() {
     if (options.fdcan_frame && options.bitrate_switch) {
