@@ -99,8 +99,8 @@ int main(void) {
       pool, persistent_config, command_manager, write_stream,
       []() {
         fw::CanManager::Options options;
-        options.td = PA_12;
-        options.rd = PA_11;
+        options.td = PB_13;
+        options.rd = PB_12;
         return options;
       }());
 
