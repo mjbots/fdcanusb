@@ -20,7 +20,6 @@ def rules_mbed_repository():
     github_archive(
         name = "com_github_mjbots_rules_mbed",
         repo = "mjbots/rules_mbed",
-        commit = "359b67afb35f390543d8fd75d02fca0b4c8ed3b5",
-        sha256 = "694d17ae29d7718f5073ed5c53c1eaf8b23413f74da6590a8587e3c850d6aaf5",
-        local_override = "/home/josh/prog/rules_mbed",
+        commit = "ead428b988baf2e5c8987fccc42531837397a503",
+        sha256 = "6093313f0fe2969fd16f109fd052d9f82bda883df9007d44d10c8eab005201d6",
     )
