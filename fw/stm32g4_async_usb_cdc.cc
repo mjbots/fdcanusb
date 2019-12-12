@@ -210,6 +210,8 @@ class Stm32G4AsyncUsbCdc::Impl {
 
     current_read_callback_ = callback;
     current_read_data_ = data;
+
+    ProcessRead();
   }
 
   void AsyncWriteSome(const std::string_view& data,
@@ -298,23 +300,29 @@ class Stm32G4AsyncUsbCdc::Impl {
   }
 
   void cdc_rxonly(uint8_t event, uint8_t ep) {
-    if (!current_read_callback_) {
-      // Read and discard.
-      usbd_ep_read(&udev_, ep, fifo_, CDC_DATA_SZ);
-      return;
-    }
+    // We always want to read the full amount from the endpoint.
+    const auto bytes_to_read = std::min<int>(CDC_DATA_SZ, sizeof(fifo_) - fpos_);
+    const auto actual = usbd_ep_read(&udev_, ep, &fifo_[fpos_], bytes_to_read);
+    fpos_ += actual;
 
     led_com_.write(1);
 
-    auto actual = usbd_ep_read(&udev_, ep, current_read_data_.data(),
-                               std::min(CDC_DATA_SZ, current_read_data_.size()));
-    if (actual > 0) {
-      auto copy = current_read_callback_;
-      current_read_callback_ = {};
-      current_read_data_ = {};
+    ProcessRead();
+  }
 
-      copy(micro::error_code(), actual);
-    }
+  void ProcessRead() {
+    if (fpos_ == 0) { return; }
+
+    auto copy = current_read_callback_;
+    const auto bytes_to_read = std::min<int>(fpos_, current_read_data_.size());
+    std::memcpy(current_read_data_.data(), fifo_, bytes_to_read);
+    std::memmove(&fifo_[0], &fifo_[bytes_to_read], fpos_ - bytes_to_read);
+    fpos_ -= bytes_to_read;
+
+    current_read_callback_ = {};
+    current_read_data_ = {};
+
+    copy(micro::error_code(), bytes_to_read);
   }
 
   void cdc_txonly(uint8_t event, uint8_t ep) {
