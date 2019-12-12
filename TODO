@@ -1,0 +1,21 @@
+ * Make enclosure
+ * Report serial number over ASCII interface in addition to USB
+
+v2 ERRATA
+ * DB9 pinout is mirrored left to right, looks like eagle footprint is
+   the culprit
+
+DONE 2019-12-12
+ * Fixed CDC receive of multi-byte transfers
+
+DONE 2019-12-11
+ * Got CAN communication working
+ * Implement soft-termination
+ * Make CAN RX/TX lights blink
+ * Make PWR light work
+ * Make COM light work
+ * LEDs are plenty bright
+ * Fixed DB9 pinout problem, made r2.1
+
+DONE 2019-12-10
+ * Got basic USB CDC working
