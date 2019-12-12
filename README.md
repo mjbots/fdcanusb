@@ -1,6 +1,8 @@
 # fdcanusb #
 
-The fdcanusb provides a USB interface to an FDCAN bus.  It presents a serial-like interface over the USB port.
+The fdcanusb provides a USB 2.0 full speed interface to an FDCAN bus.  It presents a serial-like interface over the USB port using the CDC ACM class, i.e. a virtual COM port.
+
+The designs and firmware are licensed under the Apache 2.0 License.
 
 # Protocol #
 
