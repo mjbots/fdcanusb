@@ -312,6 +312,7 @@ class Stm32G4AsyncUsbCdc::Impl {
 
   void ProcessRead() {
     if (fpos_ == 0) { return; }
+    if (!current_read_callback_) { return; }
 
     auto copy = current_read_callback_;
     const auto bytes_to_read = std::min<int>(fpos_, current_read_data_.size());
