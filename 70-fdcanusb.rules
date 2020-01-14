@@ -1,0 +1,7 @@
+# A udev rule to create a /dev/fdcanusb symlink.
+#
+# Install into /etc/udev/rules.d
+#
+# Then run udevadm control --reload-rules
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE="0666", SYMLINK+="fdcanusb"
