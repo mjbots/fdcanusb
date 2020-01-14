@@ -59,7 +59,7 @@ OCD = (
 genrule(
     name = "flash",
     tags = ["manual"],
-    srcs = ["fdcan_test.bin"],
+    srcs = ["fdcanusb.bin"],
     outs = ["flash.stamp"],
-    cmd = (OCD + "-c init -c \"reset_config none separate; program $(location fdcan_test.bin) verify 0x8000000 reset exit 0x8000000\" && touch $@"),
+    cmd = (OCD + "-c init -c \"reset_config none separate; program $(location fdcanusb.bin) verify 0x8000000 reset exit 0x8000000\" && touch $@"),
 )
