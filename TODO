@@ -1,5 +1,6 @@
  * Make enclosure
  * Report serial number over ASCII interface in addition to USB
+ * Record/report fw version
 
 v2 ERRATA
  * DB9 pinout is mirrored left to right, looks like eagle footprint is
@@ -7,6 +8,7 @@ v2 ERRATA
 
 DONE 2019-12-12
  * Fixed CDC receive of multi-byte transfers
+ * Set up travis
 
 DONE 2019-12-11
  * Got CAN communication working
