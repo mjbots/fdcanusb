@@ -16,6 +16,16 @@
 
 load("@com_github_ARMmbed_mbed-os//:rules.bzl", "mbed_binary")
 
+cc_library(
+    name = "git_info",
+    hdrs = ["git_info.h"],
+    srcs = ["git_info.cc"],
+    deps = [
+        "@mjlib//mjlib/base:visitor",
+    ],
+    linkstamp = "git_info_linkstamp.cc",
+)
+
 mbed_binary(
     name = "fdcanusb",
     srcs = [
@@ -26,6 +36,8 @@ mbed_binary(
         "fdcan.h",
         "fdcan.cc",
         "fdcanusb.cc",
+        "firmware_info.h",
+        "firmware_info.cc",
         "millisecond_timer.h",
         "stm32_serial.h",
         "stm32_serial.cc",
@@ -42,10 +54,12 @@ mbed_binary(
         "libusb_stm32/src/usbd_core.c",
     ],
     deps = [
+        ":git_info",
         "@mjlib//mjlib/micro:atomic_event_queue",
         "@mjlib//mjlib/micro:callback_table",
         "@mjlib//mjlib/micro:command_manager",
         "@mjlib//mjlib/micro:persistent_config",
+        "@mjlib//mjlib/micro:telemetry_manager",
     ],
     includes = [
         "libusb_stm32/inc",

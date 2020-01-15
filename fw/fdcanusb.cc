@@ -19,8 +19,11 @@
 
 #include "mjlib/micro/command_manager.h"
 #include "mjlib/micro/persistent_config.h"
+#include "mjlib/micro/telemetry_manager.h"
 
 #include "fw/can_manager.h"
+#include "fw/firmware_info.h"
+#include "fw/git_info.h"
 #include "fw/millisecond_timer.h"
 #include "fw/stm32g4_async_uart.h"
 #include "fw/stm32g4_flash.h"
@@ -93,6 +96,10 @@ int main(void) {
         options.max_line_length = 300;
         return options;
       }());
+
+  micro::TelemetryManager telemetry_manager(
+      &pool, &command_manager, &write_stream);
+
   fw::Stm32G4Flash flash_interface;
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
@@ -105,6 +112,11 @@ int main(void) {
         options.rd = PB_12;
         return options;
       }());
+
+  fw::FirmwareInfo firmware_info(pool, telemetry_manager);
+
+  fw::GitInfo git_info;
+  telemetry_manager.Register("git", &git_info);
 
   persistent_config.Load();
 

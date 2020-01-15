@@ -15,3 +15,9 @@ test --nostart_end_lib
 
 build -c opt
 test -c opt
+
+build --workspace_status_command=tools/workspace_status.sh
+test --workspace_status_command=tools/workspace_status.sh
+
+build --stamp
+test --stamp
