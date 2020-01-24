@@ -535,16 +535,8 @@
 <package name="F09H">
 <description>&lt;b&gt;SUB-D&lt;/b&gt;</description>
 <wire x1="-15.494" y1="7.62" x2="-10.414" y2="7.62" width="0.1524" layer="21"/>
-<wire x1="-15.494" y1="7.62" x2="-15.494" y2="10.668" width="0.1524" layer="21"/>
 <wire x1="-15.494" y1="7.62" x2="-15.494" y2="7.493" width="0.1524" layer="21"/>
-<wire x1="-15.494" y1="10.668" x2="-15.494" y2="11.176" width="0.1524" layer="21"/>
-<wire x1="-15.494" y1="11.176" x2="-15.494" y2="11.684" width="0.1524" layer="21"/>
-<wire x1="15.494" y1="11.684" x2="15.494" y2="11.176" width="0.1524" layer="21"/>
-<wire x1="15.494" y1="11.176" x2="15.494" y2="10.668" width="0.1524" layer="21"/>
-<wire x1="15.494" y1="10.668" x2="15.494" y2="7.62" width="0.1524" layer="21"/>
 <wire x1="15.494" y1="7.62" x2="15.494" y2="7.493" width="0.1524" layer="21"/>
-<wire x1="-15.494" y1="11.176" x2="-12.954" y2="11.176" width="0.1524" layer="21"/>
-<wire x1="-12.954" y1="11.176" x2="-10.414" y2="11.176" width="0.1524" layer="21"/>
 <wire x1="-10.414" y1="7.62" x2="-9.525" y2="7.62" width="0.1524" layer="21"/>
 <wire x1="-9.525" y1="7.62" x2="-9.271" y2="7.62" width="0.1524" layer="21"/>
 <wire x1="-9.271" y1="7.62" x2="-9.271" y2="6.858" width="0.1524" layer="21"/>
@@ -553,9 +545,6 @@
 <wire x1="9.271" y1="7.62" x2="9.271" y2="6.858" width="0.1524" layer="21"/>
 <wire x1="9.271" y1="7.62" x2="9.525" y2="7.62" width="0.1524" layer="21"/>
 <wire x1="9.525" y1="7.62" x2="10.414" y2="7.62" width="0.1524" layer="21"/>
-<wire x1="12.954" y1="11.176" x2="15.494" y2="11.176" width="0.1524" layer="21"/>
-<wire x1="-10.414" y1="11.176" x2="10.414" y2="11.176" width="0.1524" layer="21"/>
-<wire x1="10.414" y1="11.176" x2="12.954" y2="11.176" width="0.1524" layer="21"/>
 <wire x1="-14.859" y1="-3.175" x2="-15.494" y2="-2.54" width="0.1524" layer="21"/>
 <wire x1="-15.494" y1="-2.54" x2="-15.494" y2="7.493" width="0.1524" layer="21"/>
 <wire x1="-10.033" y1="-3.175" x2="-14.859" y2="-3.175" width="0.1524" layer="21"/>
@@ -567,9 +556,6 @@
 <wire x1="14.986" y1="-3.175" x2="15.494" y2="-2.667" width="0.1524" layer="21"/>
 <wire x1="15.494" y1="-2.667" x2="15.494" y2="7.493" width="0.1524" layer="21"/>
 <wire x1="10.414" y1="7.62" x2="15.494" y2="7.62" width="0.1524" layer="21"/>
-<wire x1="-15.494" y1="11.684" x2="-7.747" y2="11.684" width="0.1524" layer="21"/>
-<wire x1="7.747" y1="11.684" x2="15.494" y2="11.684" width="0.1524" layer="21"/>
-<wire x1="7.747" y1="11.684" x2="-7.747" y2="11.684" width="0.1524" layer="21"/>
 <circle x="-12.5222" y="0" radius="1.651" width="0.1524" layer="21"/>
 <circle x="-12.5222" y="0" radius="2.667" width="0" layer="42"/>
 <circle x="-12.5222" y="0" radius="2.667" width="0" layer="43"/>
@@ -587,7 +573,6 @@
 <pad name="9" x="4.1148" y="1.27" drill="1.016" shape="octagon"/>
 <text x="-15.24" y="-6.35" size="1.778" layer="25" ratio="10">&gt;NAME</text>
 <rectangle x1="-9.271" y1="6.858" x2="9.271" y2="7.62" layer="21"/>
-<rectangle x1="-15.494" y1="11.176" x2="15.494" y2="11.684" layer="21"/>
 <hole x="-12.5222" y="0" drill="3.302"/>
 <hole x="12.5222" y="0" drill="3.302"/>
 </package>
@@ -2530,8 +2515,8 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <wire x1="264.16" y1="-63.5" x2="-5.08" y2="-63.5" width="0.1524" layer="90"/>
 <wire x1="-5.08" y1="-63.5" x2="-5.08" y2="88.9" width="0.1524" layer="90"/>
 <text x="0" y="73.66" size="7.62" layer="90">MOUNTS / POWER</text>
-<text x="-5.08" y="93.98" size="3.81" layer="90">fdcanusb r2.1
-(c) 2019 Josh Pieper, jjp@pobox.com
+<text x="-5.08" y="93.98" size="3.81" layer="90">mjbots fdcanusb r2.2
+(c) 2020 Josh Pieper, jpieper@mjbots.com
 Licensed under the Apache 2.0 License
 https://www.apache.org/licenses/LICENSE-2.0</text>
 <wire x1="274.32" y1="88.9" x2="513.08" y2="88.9" width="0.1524" layer="90"/>
