@@ -2468,17 +2468,17 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <part name="D3" library="mfleds" deviceset="LED_SINGLE" device="-0603-GREEN" value="MF-LED-0603-GREEN"/>
 <part name="D2" library="mfleds" deviceset="LED_SINGLE" device="-0603-RED" value="MF-LED-0603-RED"/>
 <part name="D4" library="mfleds" deviceset="LED_SINGLE" device="-0603-RED" value="MF-LED-0603-RED"/>
-<part name="R1" library="mfpassives" deviceset="RESISTOR" device="_0402" value="560">
-<attribute name="MPN" value="MF-RES-0402-560"/>
+<part name="R1" library="mfpassives" deviceset="RESISTOR" device="_0402" value="220">
+<attribute name="MPN" value="MF-RES-0402-220"/>
 </part>
-<part name="R2" library="mfpassives" deviceset="RESISTOR" device="_0402" value="560">
-<attribute name="MPN" value="MF-RES-0402-560"/>
+<part name="R2" library="mfpassives" deviceset="RESISTOR" device="_0402" value="220">
+<attribute name="MPN" value="MF-RES-0402-220"/>
 </part>
-<part name="R3" library="mfpassives" deviceset="RESISTOR" device="_0402" value="560">
-<attribute name="MPN" value="MF-RES-0402-560"/>
+<part name="R3" library="mfpassives" deviceset="RESISTOR" device="_0402" value="220">
+<attribute name="MPN" value="MF-RES-0402-220"/>
 </part>
-<part name="R4" library="mfpassives" deviceset="RESISTOR" device="_0402" value="560">
-<attribute name="MPN" value="MF-RES-0402-560"/>
+<part name="R4" library="mfpassives" deviceset="RESISTOR" device="_0402" value="220">
+<attribute name="MPN" value="MF-RES-0402-220"/>
 </part>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="DGND" library="fdcanusb" deviceset="PAD" device="24AWG_PAD">
