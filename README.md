@@ -141,9 +141,9 @@ Report the current mode and status of various flags.
 When in the "Bus On" state, the device may spontaneously emit the
 following lines upon receipt of valid CAN frames or other errors.
 
-## *rcv std* ##
+## *rcv* ##
 
-A standard CAN frame has been received.
+A CAN frame has been received.
 
 ```
 <rcv <HEXID> <HEXDATA> <flags>
