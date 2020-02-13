@@ -6,6 +6,22 @@ The designs and firmware are licensed under the Apache 2.0 License.
 
  * [![Build Status](https://travis-ci.org/mjbots/fdcanusb.svg?branch=master)](https://travis-ci.org/mjbots/fdcanusb)
 
+# Building #
+
+To build on an Ubuntu 18.04 or newer system (no dependencies should be required).
+
+```
+./tools/bazel build //fw:fdcanusb.bin
+```
+
+To flash:
+
+```
+./flash.sh
+```
+
+This requires an openocd that supports the stm32g4, (which as of 2020-01-01 upstream does not).  You can use: https://github.com/mjbots/openocd/
+
 # Protocol #
 
 Each command or response is a single newline terminated line, composed
