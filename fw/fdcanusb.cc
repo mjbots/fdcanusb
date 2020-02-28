@@ -33,17 +33,41 @@ namespace {
 namespace base = mjlib::base;
 namespace micro = mjlib::micro;
 
-void SetupClock() {
+void SetupClock(int clock_rate_hz) {
   __HAL_RCC_SYSCFG_CLK_ENABLE();
   __HAL_RCC_PWR_CLK_ENABLE();
 
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
+  // Temporarily stop running off the PLL so we can change it.
+  RCC_ClkInitStruct.ClockType      = RCC_CLOCKTYPE_SYSCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_6) != HAL_OK) {
+    mbed_die();
+  }
+
+  RCC_OscInitTypeDef RCC_OscInitStruct;
+
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV4;
+  RCC_OscInitStruct.PLL.PLLN = (clock_rate_hz / 1000000) * 24 / 48;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+    mbed_die();
+  }
+
   RCC_ClkInitStruct.ClockType      = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1; // 170 MHz
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;  //  85 MHz
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;  //  85 MHz
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_6) != HAL_OK) {
     mbed_die();
@@ -52,19 +76,51 @@ void SetupClock() {
   {
     RCC_PeriphCLKInitTypeDef PeriphClkInit = {};
 
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_FDCAN | RCC_PERIPHCLK_USART2;
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
     PeriphClkInit.FdcanClockSelection = RCC_FDCANCLKSOURCE_PCLK1;
-    PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
     {
       mbed_die();
     }
   }
 }
+
+class ClockManager {
+ public:
+  ClockManager(micro::PersistentConfig& persistent_config) {
+    persistent_config.Register("clock", &clock_, [this]() {
+        this->UpdateConfig();
+      });
+
+  }
+
+  void UpdateConfig() {
+    const int can_clock_hz = [&]() {
+      if (clock_.can_hz >= 85000000) { return 85000000; }
+      if (clock_.can_hz >= 80000000) { return 80000000; }
+      if (clock_.can_hz >= 60000000) { return 60000000; }
+      return 85000000;
+    }();
+
+    SetupClock(can_clock_hz * 2);
+  }
+
+ private:
+  struct Config {
+    int32_t can_hz = 85000000;
+
+    template <typename Archive>
+    void Serialize(Archive* a) {
+      a->Visit(MJ_NVP(can_hz));
+    }
+  };
+
+  Config clock_;
+};
 }
 
 int main(void) {
-  SetupClock();
+  SetupClock(170000000);
 
   DigitalOut power_led{PB_5, 1};
 
@@ -103,6 +159,8 @@ int main(void) {
   fw::Stm32G4Flash flash_interface;
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
+
+  ClockManager clock(persistent_config);
 
   fw::CanManager can_manager(
       pool, persistent_config, command_manager, write_stream,

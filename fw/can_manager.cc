@@ -78,6 +78,33 @@ struct Config {
 
   std::array<Filter, kFilterSize> filter = { {} };
 
+  struct RateConfig {
+    int32_t prescaler = -1;
+    int32_t sync_jump_width = -1;
+    int32_t time_seg1 = -1;
+    int32_t time_seg2 = -1;
+
+    template <typename Archive>
+    void Serialize(Archive* a) {
+      a->Visit(MJ_NVP(prescaler));
+      a->Visit(MJ_NVP(sync_jump_width));
+      a->Visit(MJ_NVP(time_seg1));
+      a->Visit(MJ_NVP(time_seg2));
+    }
+
+    FDCan::Rate rate() const {
+      FDCan::Rate result;
+      result.prescaler = prescaler;
+      result.sync_jump_width = sync_jump_width;
+      result.time_seg1 = time_seg1;
+      result.time_seg2 = time_seg2;
+      return result;
+    }
+  };
+
+  RateConfig rate;
+  RateConfig fdrate;
+
   template <typename Archive>
   void Serialize(Archive* a) {
     a->Visit(MJ_NVP(bitrate));
@@ -91,6 +118,8 @@ struct Config {
     a->Visit(MJ_NVP(autostart));
     a->Visit(MJ_NVP(global));
     a->Visit(MJ_NVP(filter));
+    a->Visit(MJ_NVP(rate));
+    a->Visit(MJ_NVP(fdrate));
   }
 };
 
@@ -170,6 +199,8 @@ class CanManager::Impl {
       Command_Send(cmd, tokenizer.remaining(), response);
     } else if (cmd == "status") {
       Command_Status(response);
+    } else if (cmd == "config") {
+      Command_Config(response);
     } else {
       WriteMessage("ERR unknown subcommand\r\n", response);
     }
@@ -265,6 +296,9 @@ class CanManager::Impl {
 
         options.filter_begin = fdcan_filter_.begin();
         options.filter_end = fdcan_filter_.end();
+
+        options.rate_override = config_.rate.rate();
+        options.fdrate_override = config_.fdrate.rate();
 
         return options;
       }());
@@ -364,6 +398,25 @@ class CanManager::Impl {
              status.BusOff,
              status.ProtocolException,
              status.TDCvalue);
+    WriteMessage(status_line_, response);
+  }
+
+  void Command_Config(const micro::CommandManager::Response& response) {
+    if (!can_) {
+      WriteMessage("ERR not in BusOn\r\n", response);
+      return;
+    }
+
+    const auto config = can_->config();
+    snprintf(status_line_, sizeof(status_line_),
+             "clk=%d "
+             "np=%d nsjw=%d nts1=%d nts2=%d "
+             "dp=%d dsjw=%d dts1=%d dts2=%d\r\n",
+             config.clock,
+             config.nominal.prescaler, config.nominal.sync_jump_width,
+             config.nominal.time_seg1, config.nominal.time_seg2,
+             config.data.prescaler, config.data.sync_jump_width,
+             config.data.time_seg1, config.data.time_seg2);
     WriteMessage(status_line_, response);
   }
 
