@@ -1,12 +1,15 @@
-v2 ERRATA
- * DB9 pinout is mirrored left to right, looks like eagle footprint is
-   the culprit
+DONE 2020-01-28
+ * Tested interop with a PCAN-USB, provided more knobs
 
 DONE 2020-01-27
  * Test/programming fixture operational
 
 DONE 2020-01-15
  * Report git hash and serial number over serial
+
+v2 ERRATA
+ * DB9 pinout is mirrored left to right, looks like eagle footprint is
+   the culprit
 
 DONE 2019-12-12
  * Fixed CDC receive of multi-byte transfers
