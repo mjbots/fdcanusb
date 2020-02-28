@@ -398,7 +398,13 @@ class CanManager::Impl {
     };
 
     fmt("rcv %X ", rx_header_.Identifier);
-    const int dlc = ParseDlc(rx_header_.DataLength);
+    const int dlc = [&]() {
+      auto result = ParseDlc(rx_header_.DataLength);
+      if (rx_header_.FDFormat != FDCAN_FD_CAN) {
+        result = std::min(8, result);
+      }
+      return result;
+    }();
     for (int i = 0; i < dlc; i++) {
       fmt("%02X", rx_data_[i]);
     }
