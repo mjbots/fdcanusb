@@ -123,27 +123,6 @@ struct Config {
   }
 };
 
-int ParseDlc(uint32_t dlc_code) {
-  if (dlc_code == FDCAN_DLC_BYTES_0) { return 0; }
-  if (dlc_code == FDCAN_DLC_BYTES_1) { return 1; }
-  if (dlc_code == FDCAN_DLC_BYTES_2) { return 2; }
-  if (dlc_code == FDCAN_DLC_BYTES_3) { return 3; }
-  if (dlc_code == FDCAN_DLC_BYTES_4) { return 4; }
-  if (dlc_code == FDCAN_DLC_BYTES_5) { return 5; }
-  if (dlc_code == FDCAN_DLC_BYTES_6) { return 6; }
-  if (dlc_code == FDCAN_DLC_BYTES_7) { return 7; }
-  if (dlc_code == FDCAN_DLC_BYTES_8) { return 8; }
-  if (dlc_code == FDCAN_DLC_BYTES_12) { return 12; }
-  if (dlc_code == FDCAN_DLC_BYTES_16) { return 16; }
-  if (dlc_code == FDCAN_DLC_BYTES_20) { return 20; }
-  if (dlc_code == FDCAN_DLC_BYTES_24) { return 24; }
-  if (dlc_code == FDCAN_DLC_BYTES_32) { return 32; }
-  if (dlc_code == FDCAN_DLC_BYTES_48) { return 48; }
-  if (dlc_code == FDCAN_DLC_BYTES_64) { return 64; }
-  mbed_die();
-  return 0;
-}
-
 int ParseHexNybble(char c) {
   if (c >= '0' && c <= '9') { return c - '0'; }
   if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
@@ -452,7 +431,7 @@ class CanManager::Impl {
 
     fmt("rcv %X ", rx_header_.Identifier);
     const int dlc = [&]() {
-      auto result = ParseDlc(rx_header_.DataLength);
+      auto result = FDCan::ParseDlc(rx_header_.DataLength);
       if (rx_header_.FDFormat != FDCAN_FD_CAN) {
         result = std::min(8, result);
       }

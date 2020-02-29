@@ -120,6 +120,8 @@ class FDCan {
 
   Config config() const;
 
+  static int ParseDlc(uint32_t dlc_code);
+
  private:
   const Options options_;
   Config config_;
