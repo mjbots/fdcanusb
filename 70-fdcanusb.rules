@@ -2,6 +2,8 @@
 #
 # Install into /etc/udev/rules.d
 #
-# Then run udevadm control --reload-rules
+# Then run:
+#   udevadm control --reload-rules
+#   udevadm trigger --subsystem-match=tty
 
 SUBSYSTEM=="tty", ATTRS{manufacturer}=="mjbots", ATTRS{product}=="fdcanusb", MODE="0666", SYMLINK+="fdcanusb"
