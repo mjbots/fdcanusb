@@ -15,6 +15,13 @@
 // This can be compiled with:
 //
 // g++ -Wall -g -O2 fdcanusb_daemon.cc -o fdcanusb_daemon
+//
+//
+// To create a virtual CAN interface, one option would be to use:
+//
+//  sudo ip link add name vcan0 type vcan
+//  sudo ip link set vcan0 up
+
 
 #include <fcntl.h>
 #include <linux/can.h>
