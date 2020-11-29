@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <inttypes.h>
+
 #include "mbed.h"
 #include "PeripheralPins.h"
 
@@ -87,11 +89,16 @@ void SetupClock(int clock_rate_hz) {
 
 class ClockManager {
  public:
-  ClockManager(micro::PersistentConfig& persistent_config) {
+  ClockManager(fw::MillisecondTimer* timer,
+               micro::PersistentConfig& persistent_config,
+               micro::CommandManager& command_manager)
+      : timer_(timer) {
     persistent_config.Register("clock", &clock_, [this]() {
         this->UpdateConfig();
       });
-
+    command_manager.Register("clock", [this](auto&& command, auto&& response) {
+        this->Command(command, response);
+      });
   }
 
   void UpdateConfig() {
@@ -103,19 +110,41 @@ class ClockManager {
     }();
 
     SetupClock(can_clock_hz * 2);
+
+    const int32_t trim = std::max<int32_t>(0, std::min<int32_t>(127, clock_.hsitrim));
+    RCC->ICSCR = (RCC->ICSCR & ~0xff000000) | (trim << 24);
+  }
+
+  void Command(const std::string_view& command,
+               const micro::CommandManager::Response& response) {
+    if (command == "us") {
+      snprintf(output_, sizeof(output_), "%" PRIu32 "\r\n", timer_->read_us());
+      WriteMessage(output_, response);
+    } else {
+      WriteMessage("ERR unknown clock\r\n", response);
+    }
+  }
+
+  void WriteMessage(const std::string_view& message,
+                    const micro::CommandManager::Response& response) {
+    micro::AsyncWrite(*response.stream, message, response.callback);
   }
 
  private:
   struct Config {
     int32_t can_hz = 85000000;
+    int32_t hsitrim = 64;
 
     template <typename Archive>
     void Serialize(Archive* a) {
       a->Visit(MJ_NVP(can_hz));
+      a->Visit(MJ_NVP(hsitrim));
     }
   };
 
+  fw::MillisecondTimer* const timer_;
   Config clock_;
+  char output_[16] = {};
 };
 }
 
@@ -160,7 +189,7 @@ int main(void) {
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
 
-  ClockManager clock(persistent_config);
+  ClockManager clock(&timer, persistent_config, command_manager);
 
   fw::CanManager can_manager(
       pool, persistent_config, command_manager, write_stream,
