@@ -416,10 +416,10 @@ class CanManager::Impl {
   void Poll() {
     if (!can_) { return; }
 
+    if (write_outstanding_) { return; }
+
     const bool frame_found = can_->Poll(&rx_header_, rx_data_);
     if (!frame_found) { return; }
-
-    if (write_outstanding_) { return; }
 
     led_rx_.write(1);
 
