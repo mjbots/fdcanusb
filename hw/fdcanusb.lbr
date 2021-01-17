@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.5.0">
+<eagle version="9.6.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.1" altunitdist="mm" altunit="mm"/>
+<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="yes"/>
@@ -960,6 +961,27 @@
 <wire x1="-1.1" y1="-0.5" x2="-1.1" y2="-1.5" width="0.127" layer="21"/>
 <wire x1="-1.1" y1="-1.5" x2="-0.1" y2="-1.5" width="0.127" layer="21"/>
 </package>
+<package name="DB09_PLATED">
+<pad name="1" x="-5.4864" y="-1.27" drill="1.016" shape="octagon"/>
+<pad name="2" x="-2.7432" y="-1.27" drill="1.016" shape="octagon"/>
+<pad name="3" x="0" y="-1.27" drill="1.016" shape="octagon"/>
+<pad name="4" x="2.7432" y="-1.27" drill="1.016" shape="octagon"/>
+<pad name="5" x="5.4864" y="-1.27" drill="1.016" shape="octagon"/>
+<pad name="6" x="-4.1148" y="1.27" drill="1.016" shape="octagon"/>
+<pad name="7" x="-1.3716" y="1.27" drill="1.016" shape="octagon"/>
+<pad name="8" x="1.3716" y="1.27" drill="1.016" shape="octagon"/>
+<pad name="9" x="4.1148" y="1.27" drill="1.016" shape="octagon"/>
+<pad name="S1" x="-12.5222" y="0" drill="3.302"/>
+<pad name="S2" x="12.5222" y="0" drill="3.302"/>
+<wire x1="-15.494" y1="7.62" x2="15.494" y2="7.62" width="0.1524" layer="21"/>
+<wire x1="-15.494" y1="7.62" x2="-15.494" y2="-3.175" width="0.1524" layer="21"/>
+<wire x1="-15.494" y1="-3.175" x2="-9.906" y2="-3.175" width="0.1524" layer="21"/>
+<wire x1="-9.906" y1="-3.175" x2="-9.906" y2="5.842" width="0.1524" layer="21"/>
+<wire x1="-9.906" y1="5.842" x2="9.906" y2="5.842" width="0.1524" layer="21"/>
+<wire x1="9.906" y1="5.842" x2="9.906" y2="-3.175" width="0.1524" layer="21"/>
+<wire x1="9.906" y1="-3.175" x2="15.494" y2="-3.175" width="0.1524" layer="21"/>
+<wire x1="15.494" y1="-3.175" x2="15.494" y2="7.62" width="0.1524" layer="21"/>
+</package>
 </packages>
 <symbols>
 <symbol name="MOUNT">
@@ -1571,6 +1593,22 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <attribute name="OC_FARNELL" value="unknown" constant="no"/>
 <attribute name="OC_NEWARK" value="unknown" constant="no"/>
 </technology>
+</technologies>
+</device>
+<device name="" package="DB09_PLATED">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+<connect gate="G$1" pin="3" pad="3"/>
+<connect gate="G$1" pin="4" pad="4"/>
+<connect gate="G$1" pin="5" pad="5"/>
+<connect gate="G$1" pin="6" pad="6"/>
+<connect gate="G$1" pin="7" pad="7"/>
+<connect gate="G$1" pin="8" pad="8"/>
+<connect gate="G$1" pin="9" pad="9"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
