@@ -778,7 +778,7 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 <attribute name="MANUFACTURER_PART_NUMBER" value="USBLC62SC6" x="-44.1" y="-0.9" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="MF" value="ST" x="11.78" y="20.69" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="MPN" value="USBLC6-2SC6" x="11.78" y="20.69" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="NAME" x="13.445" y="19.4666" size="0.6" layer="25" font="vector" ratio="10" rot="R270"/>
+<attribute name="NAME" x="13.5334" y="22.045" size="0.6" layer="25" font="vector" ratio="10"/>
 <attribute name="POPULATE" value="1" x="11.78" y="20.69" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="VENDOR" value="STMicroelectronics" x="-44.1" y="-0.9" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
@@ -822,7 +822,7 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 <attribute name="DIELECTRIC" value="" x="-24.3" y="79" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="HOUSEPART" value="YES" x="-24.3" y="79" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="MPN" value="MF-CAP-0402-0.1uF" x="-24.3" y="79" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="NAME" x="15" y="18.06" size="0.6" layer="25" font="vector" ratio="10"/>
+<attribute name="NAME" x="14.3" y="19.16" size="0.6" layer="25" font="vector" ratio="10"/>
 <attribute name="POPULATE" value="1" x="-24.3" y="79" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="TOLERANCE" value="" x="-24.3" y="79" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="URL" value="" x="-24.3" y="79" size="1.778" layer="27" rot="R180" display="off"/>
