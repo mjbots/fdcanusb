@@ -6,6 +6,8 @@ The designs and firmware are licensed under the Apache 2.0 License.
 
  * [![Build Status](https://travis-ci.org/mjbots/fdcanusb.svg?branch=master)](https://travis-ci.org/mjbots/fdcanusb)
 
+Pre-assembled hardware can be purchased at https://mjbots.com/products/fdcanusb
+
 # Building #
 
 To build on an Ubuntu 18.04 or newer system (no dependencies should be required).
