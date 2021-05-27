@@ -30,6 +30,7 @@
 #include "fw/stm32g4_async_uart.h"
 #include "fw/stm32g4_flash.h"
 #include "fw/stm32g4_async_usb_cdc.h"
+#include "fw/uuid.h"
 
 namespace {
 namespace base = mjlib::base;
@@ -189,6 +190,7 @@ int main(void) {
   micro::PersistentConfig persistent_config(
       pool, command_manager, flash_interface);
 
+  fw::Uuid uuid(persistent_config);
   ClockManager clock(&timer, persistent_config, command_manager);
 
   fw::CanManager can_manager(

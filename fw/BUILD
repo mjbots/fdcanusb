@@ -46,6 +46,7 @@ mbed_binary(
         "stm32g4_async_usb_cdc.h",
         "stm32g4_async_usb_cdc.cc",
         "stm32g4_flash.h",
+        "uuid.h",
         "usbd_stm32g474_devfs.c",
         "libusb_stm32/inc/usb.h",
         "libusb_stm32/inc/usb_cdc.h",
