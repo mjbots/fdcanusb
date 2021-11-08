@@ -889,7 +889,7 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 <attribute name="DIELECTRIC" value="" x="-29.5" y="-37.8" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="HOUSEPART" value="YES" x="-29.5" y="-37.8" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="MPN" value="MF-CAP-0603-0.1uF" x="-29.5" y="-37.8" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="NAME" x="25.92" y="17.48" size="0.6" layer="25" font="vector" ratio="10" rot="R270"/>
+<attribute name="NAME" x="25.93" y="17.39" size="0.55" layer="25" font="vector" ratio="10" rot="R270"/>
 <attribute name="POPULATE" value="1" x="-29.5" y="-37.8" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="TOLERANCE" value="" x="-29.5" y="-37.8" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="URL" value="" x="-29.5" y="-37.8" size="1.778" layer="27" rot="R270" display="off"/>
@@ -992,7 +992,7 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 <element name="U4" library="fdcanusb" package="TLP3317" value="TLP3317" x="27.7" y="17.7" smashed="yes">
 <attribute name="MF" value="TOSHIBA" x="27.7" y="17.7" size="1.778" layer="27" display="off"/>
 <attribute name="MPN" value="TLP3317" x="27.7" y="17.7" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="28" y="15.2" size="0.6" layer="25" font="vector" ratio="10"/>
+<attribute name="NAME" x="29" y="16.7" size="0.6" layer="25" font="vector" ratio="10"/>
 <attribute name="POPULATE" value="1" x="27.7" y="17.7" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R6" library="mfpassives" package="R0603" value="330" x="27.3" y="14.6" smashed="yes" rot="R90">
@@ -1370,16 +1370,16 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 <contactref element="U4" pad="4"/>
 <contactref element="J2" pad="4"/>
 <wire x1="31.3" y1="13.2668" x2="29.8317" y2="14.7351" width="0.2159" layer="1"/>
-<wire x1="24.2" y1="26.3" x2="24.1" y2="26.2" width="0.2159" layer="1"/>
+<wire x1="24.4" y1="26.3" x2="24.1" y2="26" width="0.2159" layer="1"/>
 <wire x1="29.8317" y1="14.7351" x2="29.8317" y2="19.5683" width="0.2159" layer="1"/>
 <wire x1="29.8317" y1="19.5683" x2="29.2" y2="20.2" width="0.2159" layer="1"/>
 <wire x1="29.2" y1="20.2" x2="27.5791375" y2="20.2" width="0.2159" layer="1"/>
 <wire x1="27.5791375" y1="20.2" x2="26.8317" y2="20.9474375" width="0.2159" layer="1"/>
 <wire x1="26.8317" y1="20.9474375" x2="26.8317" y2="26.0683" width="0.2159" layer="1"/>
 <wire x1="26.8317" y1="26.0683" x2="26.6" y2="26.3" width="0.2159" layer="1"/>
-<wire x1="26.6" y1="26.3" x2="24.2" y2="26.3" width="0.2159" layer="1"/>
+<wire x1="26.6" y1="26.3" x2="24.4" y2="26.3" width="0.2159" layer="1"/>
 <wire x1="24.1" y1="25.315" x2="24.555" y2="24.86" width="0.2159" layer="1"/>
-<wire x1="24.1" y1="26.2" x2="24.1" y2="25.315" width="0.2159" layer="1"/>
+<wire x1="24.1" y1="26" x2="24.1" y2="25.315" width="0.2159" layer="1"/>
 <wire x1="27.5791375" y1="20.2" x2="27.05" y2="19.6708625" width="0.2159" layer="1"/>
 <wire x1="27.05" y1="19.6708625" x2="27.05" y2="19.1" width="0.2159" layer="1"/>
 </signal>
@@ -1395,11 +1395,11 @@ This DRC check is for 4-Layer Standard Capability boards to be manufactured thro
 <wire x1="27.7317" y1="20.5683" x2="27.2" y2="21.1" width="0.2159" layer="1"/>
 <wire x1="27.2" y1="21.1" x2="27.2" y2="26.2208625" width="0.2159" layer="1"/>
 <wire x1="27.2" y1="26.2208625" x2="26.7525625" y2="26.6683" width="0.2159" layer="1"/>
-<wire x1="26.7525625" y1="26.6683" x2="24.0474375" y2="26.6683" width="0.2159" layer="1"/>
-<wire x1="24.0474375" y1="26.6683" x2="23.7317" y2="26.3525625" width="0.2159" layer="1"/>
+<wire x1="26.7525625" y1="26.6683" x2="24.2474375" y2="26.6683" width="0.2159" layer="1"/>
+<wire x1="24.2474375" y1="26.6683" x2="23.7317" y2="26.1525625" width="0.2159" layer="1"/>
 <wire x1="33.84" y1="14.6384" x2="30.5616" y2="14.6384" width="0.2159" layer="1"/>
 <wire x1="23.7317" y1="25.3067" x2="23.285" y2="24.86" width="0.2159" layer="1"/>
-<wire x1="23.7317" y1="26.3525625" x2="23.7317" y2="25.3067" width="0.2159" layer="1"/>
+<wire x1="23.7317" y1="26.1525625" x2="23.7317" y2="25.3067" width="0.2159" layer="1"/>
 <wire x1="28.5" y1="21.45" x2="28.5" y2="20.5683" width="0.2159" layer="1"/>
 </signal>
 <signal name="N$3">
