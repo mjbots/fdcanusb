@@ -2505,15 +2505,19 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <part name="D2" library="mfleds" deviceset="LED_SINGLE" device="-0603-RED" value="MF-LED-0603-RED"/>
 <part name="D4" library="mfleds" deviceset="LED_SINGLE" device="-0603-RED" value="MF-LED-0603-RED"/>
 <part name="R1" library="mfpassives" deviceset="RESISTOR" device="_0603" value="220">
+<attribute name="HOUSEPART" value="YES"/>
 <attribute name="MPN" value="MF-RES-0603-220"/>
 </part>
 <part name="R2" library="mfpassives" deviceset="RESISTOR" device="_0603" value="220">
+<attribute name="HOUSEPART" value="YES"/>
 <attribute name="MPN" value="MF-RES-0603-220"/>
 </part>
 <part name="R3" library="mfpassives" deviceset="RESISTOR" device="_0603" value="220">
+<attribute name="HOUSEPART" value="YES"/>
 <attribute name="MPN" value="MF-RES-0603-220"/>
 </part>
 <part name="R4" library="mfpassives" deviceset="RESISTOR" device="_0603" value="220">
+<attribute name="HOUSEPART" value="YES"/>
 <attribute name="MPN" value="MF-RES-0603-220"/>
 </part>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
