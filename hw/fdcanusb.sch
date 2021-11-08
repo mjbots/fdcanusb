@@ -2545,6 +2545,7 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 </part>
 <part name="+3V8" library="supply1" deviceset="+3V3" device=""/>
 <part name="R6" library="mfpassives" deviceset="RESISTOR" device="_0603" value="330">
+<attribute name="HOUSEPART" value="YES"/>
 <attribute name="MPN" value="MF-RES-0603-330"/>
 </part>
 </parts>
