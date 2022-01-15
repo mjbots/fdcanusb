@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <termios.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -218,6 +219,26 @@ int main(int argc, char** argv) {
     ErrorIf(::ioctl(fd, TIOCGSERIAL, &serial) < 0, "error getting serial flags");
     serial.flags |= ASYNC_LOW_LATENCY;
     ErrorIf(::ioctl(fd, TIOCSSERIAL, &serial) < 0, "error setting low latency");
+  }
+
+  // Disable all kernel-side character processing.
+  {
+    struct termios tty;
+
+    ErrorIf(::tcgetattr(fd, &tty) != 0, "error getting termios");
+
+    tty.c_cflag |= CREAD | CLOCAL;
+    tty.c_lflag &= ~ICANON;
+    tty.c_lflag &= ~ECHO; // Disable echo
+    tty.c_lflag &= ~ECHOE; // Disable erasure
+    tty.c_lflag &= ~ECHONL; // Disable new-line echo
+    tty.c_lflag &= ~ISIG;
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+    tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
+    tty.c_oflag &= ~OPOST;
+    tty.c_oflag &= ~ONLCR;
+
+    ErrorIf(::tcsetattr(fd, TCSANOW, &tty) != 0, "error setting termios");
   }
 
   SetNonblock(fd);
