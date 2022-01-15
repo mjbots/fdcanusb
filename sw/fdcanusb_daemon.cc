@@ -230,7 +230,7 @@ int main(int argc, char** argv) {
   SetNonblock(socket);
 
   struct ifreq ifr = {};
-  std::strncpy(&ifr.ifr_name[0], ifname.c_str(), sizeof(ifr.ifr_name));
+  std::strncpy(&ifr.ifr_name[0], ifname.c_str(), sizeof(ifr.ifr_name) - 1);
   ErrorIf(::ioctl(socket, SIOCGIFINDEX, &ifr) < 0,
           "could not find CAN '%s'", ifname.c_str());
 
