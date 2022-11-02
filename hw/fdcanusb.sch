@@ -2387,6 +2387,166 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 </deviceset>
 </devicesets>
 </library>
+<library name="controller">
+<packages>
+<package name="SOIC8">
+<smd name="1" x="-2.7" y="1.905" dx="1.5494" dy="0.6096" layer="1"/>
+<smd name="2" x="-2.7" y="0.635" dx="1.5494" dy="0.6096" layer="1"/>
+<smd name="3" x="-2.7" y="-0.635" dx="1.5494" dy="0.6096" layer="1"/>
+<smd name="4" x="-2.7" y="-1.905" dx="1.5494" dy="0.6096" layer="1"/>
+<smd name="5" x="2.7" y="-1.905" dx="1.5494" dy="0.6096" layer="1"/>
+<smd name="6" x="2.7" y="-0.635" dx="1.5494" dy="0.6096" layer="1"/>
+<smd name="7" x="2.7" y="0.635" dx="1.5494" dy="0.6096" layer="1"/>
+<smd name="8" x="2.7" y="1.905" dx="1.5494" dy="0.6096" layer="1"/>
+<wire x1="-3.7338" y1="-2.4638" x2="-3.7338" y2="2.4638" width="0.1524" layer="39"/>
+<wire x1="-3.7338" y1="2.4638" x2="-2.2098" y2="2.4638" width="0.1524" layer="39"/>
+<wire x1="3.7338" y1="2.4638" x2="2.2098" y2="2.4638" width="0.1524" layer="39"/>
+<wire x1="3.7338" y1="2.4638" x2="3.7338" y2="-2.4638" width="0.1524" layer="39"/>
+<wire x1="3.7338" y1="-2.4638" x2="2.2098" y2="-2.4638" width="0.1524" layer="39"/>
+<wire x1="-3.7338" y1="-2.4638" x2="-2.2098" y2="-2.4638" width="0.1524" layer="39"/>
+<wire x1="-2.2098" y1="2.4638" x2="-2.2098" y2="2.6924" width="0.1524" layer="39"/>
+<wire x1="-2.2098" y1="2.6924" x2="2.2098" y2="2.6924" width="0.1524" layer="39"/>
+<wire x1="2.2098" y1="2.6924" x2="2.2098" y2="2.4638" width="0.1524" layer="39"/>
+<wire x1="2.2098" y1="-2.4638" x2="2.2098" y2="-2.6924" width="0.1524" layer="39"/>
+<wire x1="2.2098" y1="-2.6924" x2="-2.2098" y2="-2.6924" width="0.1524" layer="39"/>
+<wire x1="-2.2098" y1="-2.6924" x2="-2.2098" y2="-2.4638" width="0.1524" layer="39"/>
+<polygon width="0.1524" layer="39">
+<vertex x="-3.7287" y="-2.4638"/>
+<vertex x="-3.7287" y="2.4638"/>
+<vertex x="-2.2098" y="2.4638"/>
+<vertex x="-2.2098" y="2.7051"/>
+<vertex x="2.2098" y="2.7051"/>
+<vertex x="2.2098" y="2.4638"/>
+<vertex x="3.7287" y="2.4638"/>
+<vertex x="3.7287" y="-2.4638"/>
+<vertex x="2.2098" y="-2.4638"/>
+<vertex x="2.2098" y="-2.7051"/>
+<vertex x="-2.2098" y="-2.7051"/>
+<vertex x="-2.2098" y="-2.4638"/>
+</polygon>
+<wire x1="-1.9558" y1="-2.4384" x2="1.9558" y2="-2.4384" width="0.1524" layer="21"/>
+<wire x1="1.9558" y1="-2.4384" x2="1.9558" y2="2.4384" width="0.1524" layer="51"/>
+<wire x1="1.9558" y1="2.4384" x2="0.3048" y2="2.4384" width="0.1524" layer="21"/>
+<wire x1="0.3048" y1="2.4384" x2="-0.3048" y2="2.4384" width="0.1524" layer="21"/>
+<wire x1="-0.3048" y1="2.4384" x2="-1.9558" y2="2.4384" width="0.1524" layer="21"/>
+<wire x1="-1.9558" y1="2.4384" x2="-1.9558" y2="-2.4384" width="0.1524" layer="51"/>
+<wire x1="0.3048" y1="2.4384" x2="-0.3048" y2="2.4384" width="0.1524" layer="21" curve="-180"/>
+<wire x1="-0.254" y1="0" x2="0.254" y2="0" width="0.1524" layer="23"/>
+<wire x1="0" y1="-0.254" x2="0" y2="0.254" width="0.1524" layer="23"/>
+<text x="-3.2766" y="-0.635" size="1.27" layer="25" ratio="6" rot="SR0">&gt;Name</text>
+</package>
+<package name="SOT23-8">
+<smd name="3" x="0.325" y="-1.3" dx="0.45" dy="1.1" layer="1"/>
+<smd name="2" x="-0.325" y="-1.3" dx="0.45" dy="1.1" layer="1"/>
+<smd name="4" x="0.975" y="-1.3" dx="0.45" dy="1.1" layer="1"/>
+<smd name="1" x="-0.975" y="-1.3" dx="0.45" dy="1.1" layer="1"/>
+<smd name="6" x="0.325" y="1.3" dx="0.45" dy="1.1" layer="1"/>
+<smd name="7" x="-0.325" y="1.3" dx="0.45" dy="1.1" layer="1"/>
+<smd name="5" x="0.975" y="1.3" dx="0.45" dy="1.1" layer="1"/>
+<smd name="8" x="-0.975" y="1.3" dx="0.45" dy="1.1" layer="1"/>
+<wire x1="-1.5" y1="-0.6" x2="-1.3" y2="-0.6" width="0.127" layer="21"/>
+<wire x1="-1.3" y1="-0.6" x2="1.5" y2="-0.6" width="0.127" layer="21"/>
+<wire x1="1.5" y1="-0.6" x2="1.5" y2="0.6" width="0.127" layer="21"/>
+<wire x1="1.5" y1="0.6" x2="-1.5" y2="0.6" width="0.127" layer="21"/>
+<wire x1="-1.5" y1="0.6" x2="-1.5" y2="-0.3" width="0.127" layer="21"/>
+<wire x1="-1.5" y1="-0.3" x2="-1.5" y2="-0.6" width="0.127" layer="21"/>
+<wire x1="-1.5" y1="-0.3" x2="-1.3" y2="-0.3" width="0.127" layer="21"/>
+<wire x1="-1.3" y1="-0.3" x2="-1.3" y2="-0.6" width="0.127" layer="21"/>
+<text x="-1.4" y="2" size="0.6" layer="25" font="vector" ratio="10">&gt;NAME</text>
+</package>
+<package name="SOT23-8-NOPASTE">
+<smd name="3" x="0.325" y="-1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<smd name="2" x="-0.325" y="-1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<smd name="4" x="0.975" y="-1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<smd name="1" x="-0.975" y="-1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<smd name="6" x="0.325" y="1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<smd name="7" x="-0.325" y="1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<smd name="5" x="0.975" y="1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<smd name="8" x="-0.975" y="1.3" dx="0.45" dy="1.1" layer="1" cream="no"/>
+<wire x1="-1.5" y1="-0.6" x2="-1.3" y2="-0.6" width="0.127" layer="21"/>
+<wire x1="-1.3" y1="-0.6" x2="1.5" y2="-0.6" width="0.127" layer="21"/>
+<wire x1="1.5" y1="-0.6" x2="1.5" y2="0.6" width="0.127" layer="21"/>
+<wire x1="1.5" y1="0.6" x2="-1.5" y2="0.6" width="0.127" layer="21"/>
+<wire x1="-1.5" y1="0.6" x2="-1.5" y2="-0.3" width="0.127" layer="21"/>
+<wire x1="-1.5" y1="-0.3" x2="-1.5" y2="-0.6" width="0.127" layer="21"/>
+<wire x1="-1.5" y1="-0.3" x2="-1.3" y2="-0.3" width="0.127" layer="21"/>
+<wire x1="-1.3" y1="-0.3" x2="-1.3" y2="-0.6" width="0.127" layer="21"/>
+<text x="-1.4" y="2" size="0.6" layer="25" font="vector" ratio="10">&gt;NAME</text>
+</package>
+</packages>
+<symbols>
+<symbol name="TCAN334GDCNT">
+<pin name="TXD" x="2.54" y="0" length="middle" direction="in"/>
+<pin name="GND" x="2.54" y="-2.54" length="middle" direction="pwr"/>
+<pin name="VCC" x="2.54" y="-5.08" length="middle" direction="pwr"/>
+<pin name="RXD" x="2.54" y="-7.62" length="middle" direction="out"/>
+<pin name="SHDN" x="38.1" y="-7.62" length="middle" direction="in" rot="R180"/>
+<pin name="CANL" x="38.1" y="-5.08" length="middle" rot="R180"/>
+<pin name="CANH" x="38.1" y="-2.54" length="middle" rot="R180"/>
+<pin name="STB" x="38.1" y="0" length="middle" direction="in" rot="R180"/>
+<wire x1="7.62" y1="5.08" x2="7.62" y2="-12.7" width="0.1524" layer="94"/>
+<wire x1="7.62" y1="-12.7" x2="33.02" y2="-12.7" width="0.1524" layer="94"/>
+<wire x1="33.02" y1="-12.7" x2="33.02" y2="5.08" width="0.1524" layer="94"/>
+<wire x1="33.02" y1="5.08" x2="7.62" y2="5.08" width="0.1524" layer="94"/>
+<text x="15.5956" y="9.1186" size="2.0828" layer="95" ratio="6" rot="SR0">&gt;Name</text>
+<text x="14.9606" y="6.5786" size="2.0828" layer="96" ratio="6" rot="SR0">&gt;Value</text>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="TCAN334G">
+<gates>
+<gate name="G$1" symbol="TCAN334GDCNT" x="-20.32" y="2.54"/>
+</gates>
+<devices>
+<device name="" package="SOIC8">
+<connects>
+<connect gate="G$1" pin="CANH" pad="7"/>
+<connect gate="G$1" pin="CANL" pad="6"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+<connect gate="G$1" pin="RXD" pad="4"/>
+<connect gate="G$1" pin="SHDN" pad="5"/>
+<connect gate="G$1" pin="STB" pad="8"/>
+<connect gate="G$1" pin="TXD" pad="1"/>
+<connect gate="G$1" pin="VCC" pad="3"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="SOT23" package="SOT23-8">
+<connects>
+<connect gate="G$1" pin="CANH" pad="7"/>
+<connect gate="G$1" pin="CANL" pad="6"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+<connect gate="G$1" pin="RXD" pad="4"/>
+<connect gate="G$1" pin="SHDN" pad="5"/>
+<connect gate="G$1" pin="STB" pad="8"/>
+<connect gate="G$1" pin="TXD" pad="1"/>
+<connect gate="G$1" pin="VCC" pad="3"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="SOT23-8-NOPASTE" package="SOT23-8-NOPASTE">
+<connects>
+<connect gate="G$1" pin="CANH" pad="7"/>
+<connect gate="G$1" pin="CANL" pad="6"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+<connect gate="G$1" pin="RXD" pad="4"/>
+<connect gate="G$1" pin="SHDN" pad="5"/>
+<connect gate="G$1" pin="STB" pad="8"/>
+<connect gate="G$1" pin="TXD" pad="1"/>
+<connect gate="G$1" pin="VCC" pad="3"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -2430,9 +2590,9 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <attribute name="MPN" value="STM32G474CEU6"/>
 <attribute name="POPULATE" value="1"/>
 </part>
-<part name="U3" library="fdcanusb" deviceset="TCAN334G" device="" value="TCAN334G">
+<part name="U3" library="fdcanusb" deviceset="TCAN334G" device="" value="TCAN1057AEV">
 <attribute name="MF" value="TI"/>
-<attribute name="MPN" value="TCAN330GDR"/>
+<attribute name="MPN" value="TCAN1057AEVDRQ1"/>
 <attribute name="POPULATE" value="1"/>
 </part>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
@@ -2556,6 +2716,21 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <attribute name="HOUSEPART" value="YES"/>
 <attribute name="MPN" value="MF-RES-0603-0"/>
 </part>
+<part name="U6" library="controller" deviceset="TCAN334G" device="SOT23-8-NOPASTE" value="TCAN334GSOT23-8-NOPASTE">
+<attribute name="MF" value="TI"/>
+<attribute name="MPN" value="TCAN334GDCNT"/>
+<attribute name="POPULATE" value="0"/>
+</part>
+<part name="R9" library="mfpassives" deviceset="RESISTOR" device="_0603" value="DNP">
+<attribute name="HOUSEPART" value="YES"/>
+<attribute name="POPULATE" value="0"/>
+</part>
+<part name="R10" library="mfpassives" deviceset="RESISTOR" device="_0603" value="0">
+<attribute name="HOUSEPART" value="YES"/>
+<attribute name="MPN" value="MF-RES-0603-0"/>
+</part>
+<part name="GND13" library="supply1" deviceset="GND" device=""/>
+<part name="+3V9" library="supply1" deviceset="+3V3" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -2584,6 +2759,9 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <wire x1="515.62" y1="-266.7" x2="274.32" y2="-266.7" width="0.1524" layer="90"/>
 <wire x1="274.32" y1="-266.7" x2="274.32" y2="-73.66" width="0.1524" layer="90"/>
 <text x="284.48" y="-88.9" size="7.62" layer="90">DEBUG</text>
+<text x="312.42" y="73.66" size="1.778" layer="101">POPULATE RESISTOR 
+ACCORDING TO CAN 
+VCC REQUIREMENT</text>
 </plain>
 <instances>
 <instance part="M1" gate="G$1" x="25.4" y="22.86" smashed="yes">
@@ -2625,12 +2803,12 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <attribute name="NAME" x="156.21" y="-134.62" size="1.778" layer="95" align="center-left"/>
 <attribute name="VALUE" x="156.21" y="-137.16" size="1.778" layer="96" align="center-left"/>
 </instance>
-<instance part="U3" gate="G$1" x="332.74" y="48.26" smashed="yes">
-<attribute name="POPULATE" x="332.74" y="48.26" size="1.778" layer="96" display="off"/>
-<attribute name="MPN" x="332.74" y="48.26" size="1.778" layer="96" display="off"/>
-<attribute name="MF" x="332.74" y="48.26" size="1.778" layer="96" display="off"/>
-<attribute name="NAME" x="348.3356" y="57.3786" size="2.0828" layer="95" ratio="6" rot="SR0"/>
-<attribute name="VALUE" x="347.7006" y="54.8386" size="2.0828" layer="96" ratio="6" rot="SR0"/>
+<instance part="U3" gate="G$1" x="337.82" y="48.26" smashed="yes">
+<attribute name="POPULATE" x="337.82" y="48.26" size="1.778" layer="96" display="off"/>
+<attribute name="MPN" x="337.82" y="48.26" size="1.778" layer="96" display="off"/>
+<attribute name="MF" x="337.82" y="48.26" size="1.778" layer="96" display="off"/>
+<attribute name="NAME" x="353.4156" y="57.3786" size="2.0828" layer="95" ratio="6" rot="SR0"/>
+<attribute name="VALUE" x="352.7806" y="54.8386" size="2.0828" layer="96" ratio="6" rot="SR0"/>
 </instance>
 <instance part="GND1" gate="1" x="144.78" y="-22.86" smashed="yes">
 <attribute name="VALUE" x="142.24" y="-25.4" size="1.778" layer="96"/>
@@ -2696,15 +2874,15 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <attribute name="NAME" x="162.56" y="-214.376" size="1.016" layer="95" font="vector" align="top-left"/>
 <attribute name="VALUE" x="162.56" y="-217.424" size="1.016" layer="96" font="vector"/>
 </instance>
-<instance part="C4" gate="G$1" x="307.34" y="33.02" smashed="yes">
-<attribute name="NAME" x="309.88" y="34.544" size="1.016" layer="95" font="vector" align="top-left"/>
-<attribute name="VALUE" x="309.88" y="31.496" size="1.016" layer="96" font="vector"/>
+<instance part="C4" gate="G$1" x="314.96" y="55.88" smashed="yes">
+<attribute name="NAME" x="317.5" y="57.404" size="1.016" layer="95" font="vector" align="top-left"/>
+<attribute name="VALUE" x="317.5" y="54.356" size="1.016" layer="96" font="vector"/>
 </instance>
 <instance part="GND6" gate="1" x="139.7" y="-223.52" smashed="yes">
 <attribute name="VALUE" x="137.16" y="-226.06" size="1.778" layer="96"/>
 </instance>
-<instance part="GND7" gate="1" x="345.44" y="25.4" smashed="yes">
-<attribute name="VALUE" x="342.9" y="22.86" size="1.778" layer="96"/>
+<instance part="GND7" gate="1" x="314.96" y="22.86" smashed="yes">
+<attribute name="VALUE" x="312.42" y="20.32" size="1.778" layer="96"/>
 </instance>
 <instance part="+3V2" gate="G$1" x="109.22" y="-114.3" smashed="yes">
 <attribute name="VALUE" x="106.68" y="-119.38" size="1.778" layer="96" rot="R90"/>
@@ -2715,8 +2893,8 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <instance part="+3V4" gate="G$1" x="165.1" y="-200.66" smashed="yes">
 <attribute name="VALUE" x="162.56" y="-205.74" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="+3V5" gate="G$1" x="307.34" y="73.66" smashed="yes">
-<attribute name="VALUE" x="304.8" y="68.58" size="1.778" layer="96" rot="R90"/>
+<instance part="+3V5" gate="G$1" x="292.1" y="71.12" smashed="yes">
+<attribute name="VALUE" x="289.56" y="66.04" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="GND8" gate="1" x="109.22" y="-134.62" smashed="yes">
 <attribute name="VALUE" x="106.68" y="-137.16" size="1.778" layer="96"/>
@@ -2801,20 +2979,41 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <attribute name="POPULATE" x="381" y="-35.56" size="1.778" layer="96" display="off"/>
 <attribute name="NAME" x="370.84" y="-20.32" size="2.54" layer="95" font="vector" ratio="10"/>
 </instance>
-<instance part="+3V8" gate="G$1" x="353.06" y="-5.08" smashed="yes">
-<attribute name="VALUE" x="350.52" y="-10.16" size="1.778" layer="96" rot="R90"/>
+<instance part="+3V8" gate="G$1" x="353.06" y="-12.7" smashed="yes">
+<attribute name="VALUE" x="350.52" y="-17.78" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="R6" gate="G$1" x="353.06" y="-20.32" smashed="yes">
-<attribute name="NAME" x="355.6" y="-18.796" size="1.016" layer="95" font="vector" align="top-left"/>
-<attribute name="VALUE" x="355.6" y="-21.844" size="1.016" layer="96" font="vector"/>
+<instance part="R6" gate="G$1" x="353.06" y="-22.86" smashed="yes">
+<attribute name="NAME" x="355.6" y="-21.336" size="1.016" layer="95" font="vector" align="top-left"/>
+<attribute name="VALUE" x="355.6" y="-24.384" size="1.016" layer="96" font="vector"/>
 </instance>
-<instance part="R7" gate="G$1" x="322.58" y="60.96" smashed="yes" rot="R90">
-<attribute name="NAME" x="321.056" y="63.5" size="1.016" layer="95" font="vector" rot="R90" align="top-left"/>
-<attribute name="VALUE" x="324.104" y="63.5" size="1.016" layer="96" font="vector" rot="R90"/>
+<instance part="R7" gate="G$1" x="309.88" y="60.96" smashed="yes" rot="R90">
+<attribute name="NAME" x="308.356" y="63.5" size="1.016" layer="95" font="vector" rot="R90" align="top-left"/>
+<attribute name="VALUE" x="311.404" y="63.5" size="1.016" layer="96" font="vector" rot="R90"/>
 </instance>
-<instance part="R8" gate="G$1" x="322.58" y="68.58" smashed="yes" rot="R90">
-<attribute name="NAME" x="321.056" y="71.12" size="1.016" layer="95" font="vector" rot="R90" align="top-left"/>
-<attribute name="VALUE" x="324.104" y="71.12" size="1.016" layer="96" font="vector" rot="R90"/>
+<instance part="R8" gate="G$1" x="309.88" y="68.58" smashed="yes" rot="R90">
+<attribute name="NAME" x="308.356" y="71.12" size="1.016" layer="95" font="vector" rot="R90" align="top-left"/>
+<attribute name="VALUE" x="311.404" y="71.12" size="1.016" layer="96" font="vector" rot="R90"/>
+</instance>
+<instance part="U6" gate="G$1" x="337.82" y="15.24" smashed="yes">
+<attribute name="NAME" x="353.4156" y="24.3586" size="2.0828" layer="95" ratio="6" rot="SR0"/>
+<attribute name="VALUE" x="352.7806" y="21.8186" size="2.0828" layer="96" ratio="6" rot="SR0"/>
+<attribute name="MF" x="337.82" y="15.24" size="1.778" layer="96" display="off"/>
+<attribute name="MPN" x="337.82" y="15.24" size="1.778" layer="96" display="off"/>
+<attribute name="POPULATE" x="337.82" y="15.24" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="R9" gate="G$1" x="416.56" y="33.02" smashed="yes" rot="R180">
+<attribute name="NAME" x="414.02" y="31.496" size="1.016" layer="95" font="vector" rot="R180" align="top-left"/>
+<attribute name="VALUE" x="414.02" y="34.544" size="1.016" layer="96" font="vector" rot="R180"/>
+</instance>
+<instance part="R10" gate="G$1" x="416.56" y="48.26" smashed="yes" rot="R180">
+<attribute name="NAME" x="414.02" y="46.736" size="1.016" layer="95" font="vector" rot="R180" align="top-left"/>
+<attribute name="VALUE" x="414.02" y="49.784" size="1.016" layer="96" font="vector" rot="R180"/>
+</instance>
+<instance part="GND13" gate="1" x="416.56" y="22.86" smashed="yes">
+<attribute name="VALUE" x="414.02" y="20.32" size="1.778" layer="96"/>
+</instance>
+<instance part="+3V9" gate="G$1" x="416.56" y="58.42" smashed="yes">
+<attribute name="VALUE" x="414.02" y="53.34" size="1.778" layer="96" rot="R90"/>
 </instance>
 </instances>
 <busses>
@@ -2858,17 +3057,6 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <pinref part="C7" gate="G$1" pin="P$2"/>
 <pinref part="GND5" gate="1" pin="GND"/>
 <wire x1="91.44" y1="-180.34" x2="91.44" y2="-182.88" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="C4" gate="G$1" pin="P$2"/>
-<wire x1="307.34" y1="30.48" x2="307.34" y2="27.94" width="0.1524" layer="91"/>
-<pinref part="GND7" gate="1" pin="GND"/>
-<wire x1="307.34" y1="27.94" x2="330.2" y2="27.94" width="0.1524" layer="91"/>
-<pinref part="U3" gate="G$1" pin="GND"/>
-<wire x1="330.2" y1="27.94" x2="345.44" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="335.28" y1="45.72" x2="330.2" y2="45.72" width="0.1524" layer="91"/>
-<wire x1="330.2" y1="45.72" x2="330.2" y2="27.94" width="0.1524" layer="91"/>
-<junction x="330.2" y="27.94"/>
 </segment>
 <segment>
 <pinref part="C8" gate="G$1" pin="P$2"/>
@@ -2949,6 +3137,26 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <wire x1="421.64" y1="-210.82" x2="416.56" y2="-210.82" width="0.1524" layer="91"/>
 <wire x1="416.56" y1="-210.82" x2="416.56" y2="-215.9" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="U3" gate="G$1" pin="GND"/>
+<wire x1="340.36" y1="45.72" x2="330.2" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="330.2" y1="45.72" x2="330.2" y2="27.94" width="0.1524" layer="91"/>
+<pinref part="C4" gate="G$1" pin="P$2"/>
+<wire x1="314.96" y1="53.34" x2="314.96" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="314.96" y1="27.94" x2="330.2" y2="27.94" width="0.1524" layer="91"/>
+<pinref part="GND7" gate="1" pin="GND"/>
+<wire x1="314.96" y1="25.4" x2="314.96" y2="27.94" width="0.1524" layer="91"/>
+<junction x="314.96" y="27.94"/>
+<wire x1="330.2" y1="27.94" x2="330.2" y2="12.7" width="0.1524" layer="91"/>
+<junction x="330.2" y="27.94"/>
+<pinref part="U6" gate="G$1" pin="GND"/>
+<wire x1="330.2" y1="12.7" x2="340.36" y2="12.7" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="R9" gate="G$1" pin="P$1"/>
+<pinref part="GND13" gate="1" pin="GND"/>
+<wire x1="416.56" y1="27.94" x2="416.56" y2="25.4" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="VBUS" class="0">
 <segment>
@@ -2974,12 +3182,12 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <label x="157.48" y="33.02" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="312.42" y1="71.12" x2="312.42" y2="68.58" width="0.1524" layer="91"/>
-<label x="312.42" y="71.12" size="1.778" layer="95"/>
+<wire x1="302.26" y1="71.12" x2="302.26" y2="68.58" width="0.1524" layer="91"/>
+<label x="302.26" y="73.66" size="1.778" layer="95"/>
 <pinref part="R8" gate="G$1" pin="P$1"/>
-<wire x1="312.42" y1="68.58" x2="312.42" y2="63.5" width="0.1524" layer="91"/>
-<wire x1="312.42" y1="68.58" x2="317.5" y2="68.58" width="0.1524" layer="91"/>
-<junction x="312.42" y="68.58"/>
+<wire x1="302.26" y1="68.58" x2="302.26" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="302.26" y1="68.58" x2="304.8" y2="68.58" width="0.1524" layer="91"/>
+<junction x="302.26" y="68.58"/>
 </segment>
 </net>
 <net name="USB_D_N" class="1">
@@ -3038,15 +3246,6 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <pinref part="C3" gate="G$1" pin="P$1"/>
 <wire x1="223.52" y1="30.48" x2="223.52" y2="27.94" width="0.1524" layer="91"/>
 <junction x="223.52" y="30.48"/>
-</segment>
-<segment>
-<pinref part="+3V5" gate="G$1" pin="+3V3"/>
-<pinref part="C4" gate="G$1" pin="P$1"/>
-<wire x1="307.34" y1="71.12" x2="307.34" y2="60.96" width="0.1524" layer="91"/>
-<pinref part="R7" gate="G$1" pin="P$1"/>
-<wire x1="307.34" y1="60.96" x2="307.34" y2="35.56" width="0.1524" layer="91"/>
-<wire x1="307.34" y1="60.96" x2="317.5" y2="60.96" width="0.1524" layer="91"/>
-<junction x="307.34" y="60.96"/>
 </segment>
 <segment>
 <pinref part="C8" gate="G$1" pin="P$1"/>
@@ -3114,7 +3313,18 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <segment>
 <pinref part="+3V8" gate="G$1" pin="+3V3"/>
 <pinref part="R6" gate="G$1" pin="P$1"/>
-<wire x1="353.06" y1="-7.62" x2="353.06" y2="-15.24" width="0.1524" layer="91"/>
+<wire x1="353.06" y1="-15.24" x2="353.06" y2="-17.78" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="R7" gate="G$1" pin="P$1"/>
+<wire x1="304.8" y1="60.96" x2="292.1" y2="60.96" width="0.1524" layer="91"/>
+<pinref part="+3V5" gate="G$1" pin="+3V3"/>
+<wire x1="292.1" y1="60.96" x2="292.1" y2="68.58" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="R10" gate="G$1" pin="P$2"/>
+<pinref part="+3V9" gate="G$1" pin="+3V3"/>
+<wire x1="416.56" y1="53.34" x2="416.56" y2="55.88" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="NRST" class="0">
@@ -3136,8 +3346,13 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <net name="CAN_RX" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="RXD"/>
-<wire x1="335.28" y1="40.64" x2="317.5" y2="40.64" width="0.1524" layer="91"/>
+<wire x1="340.36" y1="40.64" x2="332.74" y2="40.64" width="0.1524" layer="91"/>
 <label x="317.5" y="40.64" size="1.778" layer="95"/>
+<wire x1="332.74" y1="40.64" x2="317.5" y2="40.64" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="40.64" x2="332.74" y2="7.62" width="0.1524" layer="91"/>
+<junction x="332.74" y="40.64"/>
+<pinref part="U6" gate="G$1" pin="RXD"/>
+<wire x1="332.74" y1="7.62" x2="340.36" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U5" gate="G$1" pin="PB12"/>
@@ -3148,8 +3363,13 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <net name="CAN_TX" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="TXD"/>
-<wire x1="335.28" y1="48.26" x2="317.5" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="340.36" y1="48.26" x2="327.66" y2="48.26" width="0.1524" layer="91"/>
 <label x="317.5" y="48.26" size="1.778" layer="95"/>
+<wire x1="327.66" y1="48.26" x2="317.5" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="327.66" y1="48.26" x2="327.66" y2="15.24" width="0.1524" layer="91"/>
+<junction x="327.66" y="48.26"/>
+<pinref part="U6" gate="G$1" pin="TXD"/>
+<wire x1="327.66" y1="15.24" x2="340.36" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U5" gate="G$1" pin="PB13"/>
@@ -3160,8 +3380,13 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <net name="CAN_STB" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="STB"/>
-<wire x1="370.84" y1="48.26" x2="401.32" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="375.92" y1="48.26" x2="386.08" y2="48.26" width="0.1524" layer="91"/>
 <label x="388.62" y="48.26" size="1.778" layer="95"/>
+<wire x1="386.08" y1="48.26" x2="401.32" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="386.08" y1="48.26" x2="386.08" y2="15.24" width="0.1524" layer="91"/>
+<junction x="386.08" y="48.26"/>
+<pinref part="U6" gate="G$1" pin="STB"/>
+<wire x1="386.08" y1="15.24" x2="375.92" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U5" gate="G$1" pin="PB11"/>
@@ -3170,18 +3395,6 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <wire x1="157.48" y1="-205.74" x2="157.48" y2="-187.96" width="0.1524" layer="91"/>
 <wire x1="157.48" y1="-187.96" x2="187.96" y2="-187.96" width="0.1524" layer="91"/>
 <label x="177.8" y="-187.96" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="CAN_SHDN" class="0">
-<segment>
-<pinref part="U5" gate="G$1" pin="PB15"/>
-<wire x1="160.02" y1="-177.8" x2="187.96" y2="-177.8" width="0.1524" layer="91"/>
-<label x="177.8" y="-177.8" size="1.778" layer="95"/>
-</segment>
-<segment>
-<pinref part="U3" gate="G$1" pin="SHDN"/>
-<wire x1="370.84" y1="40.64" x2="401.32" y2="40.64" width="0.1524" layer="91"/>
-<label x="388.62" y="40.64" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="SWCLK" class="0">
@@ -3214,8 +3427,13 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <net name="CAN_N" class="2">
 <segment>
 <pinref part="U3" gate="G$1" pin="CANL"/>
-<wire x1="370.84" y1="43.18" x2="401.32" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="375.92" y1="43.18" x2="381" y2="43.18" width="0.1524" layer="91"/>
 <label x="391.16" y="43.18" size="1.778" layer="95"/>
+<wire x1="381" y1="43.18" x2="401.32" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="381" y1="43.18" x2="381" y2="10.16" width="0.1524" layer="91"/>
+<junction x="381" y="43.18"/>
+<pinref part="U6" gate="G$1" pin="CANL"/>
+<wire x1="381" y1="10.16" x2="375.92" y2="10.16" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <wire x1="406.4" y1="-45.72" x2="406.4" y2="-53.34" width="0.1524" layer="91"/>
@@ -3233,8 +3451,13 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <net name="CAN_P" class="2">
 <segment>
 <pinref part="U3" gate="G$1" pin="CANH"/>
-<wire x1="370.84" y1="45.72" x2="401.32" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="375.92" y1="45.72" x2="383.54" y2="45.72" width="0.1524" layer="91"/>
 <label x="391.16" y="45.72" size="1.778" layer="95"/>
+<wire x1="383.54" y1="45.72" x2="401.32" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="383.54" y1="45.72" x2="383.54" y2="12.7" width="0.1524" layer="91"/>
+<junction x="383.54" y="45.72"/>
+<pinref part="U6" gate="G$1" pin="CANH"/>
+<wire x1="383.54" y1="12.7" x2="375.92" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R5" gate="G$1" pin="P$1"/>
@@ -3371,7 +3594,7 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <net name="N$8" class="0">
 <segment>
 <pinref part="R6" gate="G$1" pin="P$2"/>
-<wire x1="353.06" y1="-25.4" x2="353.06" y2="-30.48" width="0.1524" layer="91"/>
+<wire x1="353.06" y1="-27.94" x2="353.06" y2="-30.48" width="0.1524" layer="91"/>
 <pinref part="U4" gate="A" pin="ANODE"/>
 <wire x1="353.06" y1="-30.48" x2="365.76" y2="-30.48" width="0.1524" layer="91"/>
 </segment>
@@ -3379,14 +3602,40 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <net name="N$1" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="VCC"/>
+<wire x1="340.36" y1="43.18" x2="335.28" y2="43.18" width="0.1524" layer="91"/>
 <wire x1="335.28" y1="43.18" x2="332.74" y2="43.18" width="0.1524" layer="91"/>
-<wire x1="332.74" y1="43.18" x2="332.74" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="43.18" x2="332.74" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="R7" gate="G$1" pin="P$2"/>
-<wire x1="332.74" y1="60.96" x2="327.66" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="58.42" x2="332.74" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="60.96" x2="314.96" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="332.74" y1="60.96" x2="332.74" y2="68.58" width="0.1524" layer="91"/>
 <junction x="332.74" y="60.96"/>
 <pinref part="R8" gate="G$1" pin="P$2"/>
-<wire x1="332.74" y1="68.58" x2="327.66" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="68.58" x2="314.96" y2="68.58" width="0.1524" layer="91"/>
+<pinref part="C4" gate="G$1" pin="P$1"/>
+<wire x1="314.96" y1="58.42" x2="332.74" y2="58.42" width="0.1524" layer="91"/>
+<junction x="332.74" y="58.42"/>
+<wire x1="335.28" y1="43.18" x2="335.28" y2="10.16" width="0.1524" layer="91"/>
+<junction x="335.28" y="43.18"/>
+<pinref part="U6" gate="G$1" pin="VCC"/>
+<wire x1="335.28" y1="10.16" x2="340.36" y2="10.16" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="CAN_SHDN_VIO" class="0">
+<segment>
+<pinref part="U3" gate="G$1" pin="SHDN"/>
+<wire x1="375.92" y1="40.64" x2="378.46" y2="40.64" width="0.1524" layer="91"/>
+<label x="388.62" y="40.64" size="1.778" layer="95"/>
+<wire x1="378.46" y1="40.64" x2="416.56" y2="40.64" width="0.1524" layer="91"/>
+<wire x1="378.46" y1="40.64" x2="378.46" y2="7.62" width="0.1524" layer="91"/>
+<junction x="378.46" y="40.64"/>
+<pinref part="U6" gate="G$1" pin="SHDN"/>
+<wire x1="378.46" y1="7.62" x2="375.92" y2="7.62" width="0.1524" layer="91"/>
+<pinref part="R9" gate="G$1" pin="P$2"/>
+<wire x1="416.56" y1="40.64" x2="416.56" y2="38.1" width="0.1524" layer="91"/>
+<pinref part="R10" gate="G$1" pin="P$1"/>
+<wire x1="416.56" y1="40.64" x2="416.56" y2="43.18" width="0.1524" layer="91"/>
+<junction x="416.56" y="40.64"/>
 </segment>
 </net>
 </nets>
@@ -3395,7 +3644,7 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <errors>
 <approved hash="104,1,139.7,-2.54,J1,5V,VBUS,,,"/>
 <approved hash="104,1,139.7,-15.24,J1,SLD,GND,,,"/>
-<approved hash="104,1,335.28,43.18,U3,VCC,+3V3,,,"/>
+<approved hash="104,1,340.36,43.18,U3,VCC,N$1,,,"/>
 <approved hash="104,1,309.88,-152.4,D1,ANODE,LED_CAN_TX,,,"/>
 <approved hash="104,1,309.88,-157.48,D1,CATHODE,N$3,,,"/>
 <approved hash="104,1,342.9,-152.4,D3,ANODE,LED_COM,,,"/>
@@ -3404,6 +3653,9 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <approved hash="104,1,322.58,-157.48,D2,CATHODE,N$4,,,"/>
 <approved hash="104,1,355.6,-152.4,D4,ANODE,LED_PWR,,,"/>
 <approved hash="104,1,355.6,-157.48,D4,CATHODE,N$6,,,"/>
+<approved hash="104,1,340.36,10.16,U6,VCC,N$1,,,"/>
+<approved hash="206,1,340.36,40.64,CAN_RX,,,,,"/>
+<approved hash="206,1,340.36,7.62,CAN_RX,,,,,"/>
 <approved hash="113,1,457.2,16.6681,J2,,,,,"/>
 </errors>
 </schematic>
