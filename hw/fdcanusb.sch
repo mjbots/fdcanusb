@@ -2548,6 +2548,14 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <attribute name="HOUSEPART" value="YES"/>
 <attribute name="MPN" value="MF-RES-0603-330"/>
 </part>
+<part name="R7" library="mfpassives" deviceset="RESISTOR" device="_0603" value="DNP">
+<attribute name="HOUSEPART" value="YES"/>
+<attribute name="POPULATE" value="0"/>
+</part>
+<part name="R8" library="mfpassives" deviceset="RESISTOR" device="_0603" value="0">
+<attribute name="HOUSEPART" value="YES"/>
+<attribute name="MPN" value="MF-RES-0603-0"/>
+</part>
 </parts>
 <sheets>
 <sheet>
@@ -2707,8 +2715,8 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <instance part="+3V4" gate="G$1" x="165.1" y="-200.66" smashed="yes">
 <attribute name="VALUE" x="162.56" y="-205.74" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="+3V5" gate="G$1" x="307.34" y="53.34" smashed="yes">
-<attribute name="VALUE" x="304.8" y="48.26" size="1.778" layer="96" rot="R90"/>
+<instance part="+3V5" gate="G$1" x="307.34" y="73.66" smashed="yes">
+<attribute name="VALUE" x="304.8" y="68.58" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="GND8" gate="1" x="109.22" y="-134.62" smashed="yes">
 <attribute name="VALUE" x="106.68" y="-137.16" size="1.778" layer="96"/>
@@ -2799,6 +2807,14 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <instance part="R6" gate="G$1" x="353.06" y="-20.32" smashed="yes">
 <attribute name="NAME" x="355.6" y="-18.796" size="1.016" layer="95" font="vector" align="top-left"/>
 <attribute name="VALUE" x="355.6" y="-21.844" size="1.016" layer="96" font="vector"/>
+</instance>
+<instance part="R7" gate="G$1" x="322.58" y="60.96" smashed="yes" rot="R90">
+<attribute name="NAME" x="321.056" y="63.5" size="1.016" layer="95" font="vector" rot="R90" align="top-left"/>
+<attribute name="VALUE" x="324.104" y="63.5" size="1.016" layer="96" font="vector" rot="R90"/>
+</instance>
+<instance part="R8" gate="G$1" x="322.58" y="68.58" smashed="yes" rot="R90">
+<attribute name="NAME" x="321.056" y="71.12" size="1.016" layer="95" font="vector" rot="R90" align="top-left"/>
+<attribute name="VALUE" x="324.104" y="71.12" size="1.016" layer="96" font="vector" rot="R90"/>
 </instance>
 </instances>
 <busses>
@@ -2957,6 +2973,14 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <junction x="187.96" y="30.48"/>
 <label x="157.48" y="33.02" size="1.778" layer="95"/>
 </segment>
+<segment>
+<wire x1="312.42" y1="71.12" x2="312.42" y2="68.58" width="0.1524" layer="91"/>
+<label x="312.42" y="71.12" size="1.778" layer="95"/>
+<pinref part="R8" gate="G$1" pin="P$1"/>
+<wire x1="312.42" y1="68.58" x2="312.42" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="312.42" y1="68.58" x2="317.5" y2="68.58" width="0.1524" layer="91"/>
+<junction x="312.42" y="68.58"/>
+</segment>
 </net>
 <net name="USB_D_N" class="1">
 <segment>
@@ -3018,11 +3042,11 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <segment>
 <pinref part="+3V5" gate="G$1" pin="+3V3"/>
 <pinref part="C4" gate="G$1" pin="P$1"/>
-<wire x1="307.34" y1="50.8" x2="307.34" y2="43.18" width="0.1524" layer="91"/>
-<pinref part="U3" gate="G$1" pin="VCC"/>
-<wire x1="307.34" y1="43.18" x2="307.34" y2="35.56" width="0.1524" layer="91"/>
-<wire x1="335.28" y1="43.18" x2="307.34" y2="43.18" width="0.1524" layer="91"/>
-<junction x="307.34" y="43.18"/>
+<wire x1="307.34" y1="71.12" x2="307.34" y2="60.96" width="0.1524" layer="91"/>
+<pinref part="R7" gate="G$1" pin="P$1"/>
+<wire x1="307.34" y1="60.96" x2="307.34" y2="35.56" width="0.1524" layer="91"/>
+<wire x1="307.34" y1="60.96" x2="317.5" y2="60.96" width="0.1524" layer="91"/>
+<junction x="307.34" y="60.96"/>
 </segment>
 <segment>
 <pinref part="C8" gate="G$1" pin="P$1"/>
@@ -3350,6 +3374,19 @@ https://www.apache.org/licenses/LICENSE-2.0</text>
 <wire x1="353.06" y1="-25.4" x2="353.06" y2="-30.48" width="0.1524" layer="91"/>
 <pinref part="U4" gate="A" pin="ANODE"/>
 <wire x1="353.06" y1="-30.48" x2="365.76" y2="-30.48" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$1" class="0">
+<segment>
+<pinref part="U3" gate="G$1" pin="VCC"/>
+<wire x1="335.28" y1="43.18" x2="332.74" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="43.18" x2="332.74" y2="60.96" width="0.1524" layer="91"/>
+<pinref part="R7" gate="G$1" pin="P$2"/>
+<wire x1="332.74" y1="60.96" x2="327.66" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="60.96" x2="332.74" y2="68.58" width="0.1524" layer="91"/>
+<junction x="332.74" y="60.96"/>
+<pinref part="R8" gate="G$1" pin="P$2"/>
+<wire x1="332.74" y1="68.58" x2="327.66" y2="68.58" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
