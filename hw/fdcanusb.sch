@@ -2695,9 +2695,9 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 </part>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="+3V7" library="supply1" deviceset="+3V3" device=""/>
-<part name="R5" library="mfpassives" deviceset="RESISTOR" device="_0603" value="120">
+<part name="R5" library="mfpassives" deviceset="RESISTOR" device="_0603" value="110">
 <attribute name="MF" value="YAGEO"/>
-<attribute name="MPN" value="RC0603FR-07120RL"/>
+<attribute name="MPN" value="RC0603FR-07110RL"/>
 </part>
 <part name="U4" library="fdcanusb" deviceset="TLP3317" device="">
 <attribute name="MPN" value="TLP3317"/>
@@ -2741,7 +2741,7 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 <wire x1="-5.08" y1="-63.5" x2="-5.08" y2="88.9" width="0.1524" layer="90"/>
 <text x="0" y="73.66" size="7.62" layer="90">MOUNTS / POWER</text>
 <text x="-5.08" y="93.98" size="3.81" layer="90">mjbots fdcanusb r2.5
-(c) 2021 Josh Pieper, jpieper@mjbots.com
+(c) 2022 Josh Pieper, jpieper@mjbots.com
 Licensed under the Apache 2.0 License
 https://www.apache.org/licenses/LICENSE-2.0</text>
 <wire x1="274.32" y1="88.9" x2="513.08" y2="88.9" width="0.1524" layer="90"/>
