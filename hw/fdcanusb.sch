@@ -2731,6 +2731,10 @@ Source: &lt;a href="https://componentsearchengine.com/Datasheets/1/STM32G474CEU6
 </part>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
 <part name="+3V9" library="supply1" deviceset="+3V3" device=""/>
+<part name="C12" library="mfpassives" deviceset="CAPACITOR_NP" device="_0603" value="0.1uF">
+<attribute name="HOUSEPART" value="YES"/>
+<attribute name="MPN" value="MF-CAP-0603-0.1uF"/>
+</part>
 </parts>
 <sheets>
 <sheet>
@@ -3015,6 +3019,10 @@ VCC REQUIREMENT</text>
 <instance part="+3V9" gate="G$1" x="416.56" y="58.42" smashed="yes">
 <attribute name="VALUE" x="414.02" y="53.34" size="1.778" layer="96" rot="R90"/>
 </instance>
+<instance part="C12" gate="G$1" x="424.18" y="33.02" smashed="yes">
+<attribute name="NAME" x="426.72" y="34.544" size="1.016" layer="95" font="vector" align="top-left"/>
+<attribute name="VALUE" x="426.72" y="31.496" size="1.016" layer="96" font="vector"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -3156,6 +3164,10 @@ VCC REQUIREMENT</text>
 <pinref part="R9" gate="G$1" pin="P$1"/>
 <pinref part="GND13" gate="1" pin="GND"/>
 <wire x1="416.56" y1="27.94" x2="416.56" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="416.56" y1="27.94" x2="424.18" y2="27.94" width="0.1524" layer="91"/>
+<junction x="416.56" y="27.94"/>
+<pinref part="C12" gate="G$1" pin="P$2"/>
+<wire x1="424.18" y1="27.94" x2="424.18" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="VBUS" class="0">
@@ -3636,6 +3648,9 @@ VCC REQUIREMENT</text>
 <pinref part="R10" gate="G$1" pin="P$1"/>
 <wire x1="416.56" y1="40.64" x2="416.56" y2="43.18" width="0.1524" layer="91"/>
 <junction x="416.56" y="40.64"/>
+<wire x1="416.56" y1="40.64" x2="424.18" y2="40.64" width="0.1524" layer="91"/>
+<pinref part="C12" gate="G$1" pin="P$1"/>
+<wire x1="424.18" y1="40.64" x2="424.18" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
