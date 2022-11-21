@@ -42,6 +42,13 @@ struct Config {
   bool termination = true;
   bool autostart = true;
 
+  // We by default start out set for a TCAN1057 with its longer loop delay:
+  //  start - 13 / 85MHz ~= 152ns
+  //  min   - 1 / 85Mhz ~= 12ns
+  bool delay_compensation = true;
+  int32_t tdc_offset = 13;
+  int32_t tdc_filter = 1;
+
   struct Global {
     uint8_t std_action = 0;
     uint8_t ext_action = 0;
@@ -116,6 +123,9 @@ struct Config {
     a->Visit(MJ_NVP(bus_monitor));
     a->Visit(MJ_NVP(termination));
     a->Visit(MJ_NVP(autostart));
+    a->Visit(MJ_NVP(delay_compensation));
+    a->Visit(MJ_NVP(tdc_offset));
+    a->Visit(MJ_NVP(tdc_filter));
     a->Visit(MJ_NVP(global));
     a->Visit(MJ_NVP(filter));
     a->Visit(MJ_NVP(rate));
@@ -263,6 +273,9 @@ class CanManager::Impl {
         options.bitrate_switch = config_.bitrate_switch;
         options.restricted_mode = config_.restricted_mode;
         options.bus_monitor = config_.bus_monitor;
+        options.delay_compensation = config_.delay_compensation;
+        options.tdc_offset = config_.tdc_offset;
+        options.tdc_filter = config_.tdc_filter;
 
         options.global_std_action =
             map_global_action(config_.global.std_action);

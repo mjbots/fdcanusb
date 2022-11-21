@@ -70,6 +70,10 @@ class FDCan {
     bool restricted_mode = false;
     bool bus_monitor = false;
 
+    bool delay_compensation = false;
+    uint32_t tdc_offset = 0;
+    uint32_t tdc_filter = 0;
+
     FilterAction global_std_action = FilterAction::kAccept;
     FilterAction global_ext_action = FilterAction::kAccept;
     FilterAction global_remote_std_action = FilterAction::kAccept;
