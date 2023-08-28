@@ -183,12 +183,13 @@ int main(void) {
         return options;
       }());
 
+  char micro_output_buffer[2048] = {};
   micro::TelemetryManager telemetry_manager(
-      &pool, &command_manager, &write_stream);
+      &pool, &command_manager, &write_stream, micro_output_buffer);
 
   fw::Stm32G4Flash flash_interface;
   micro::PersistentConfig persistent_config(
-      pool, command_manager, flash_interface);
+      pool, command_manager, flash_interface, micro_output_buffer);
 
   fw::Uuid uuid(persistent_config);
   ClockManager clock(&timer, persistent_config, command_manager);

@@ -16,8 +16,8 @@
 
 workspace(name = "com_github_mjbots_fdcan_test")
 
-BAZEL_VERSION = "0.28.1"
-BAZEL_VERSION_SHA = "daa27fbf9213b3dbc8509a8481f7d99cce6815cf54c50d5d3af5ec2b4c41d31f"
+BAZEL_VERSION = "5.4.1"
+BAZEL_VERSION_SHA = "5d90515f84b5ee1fd6ec22ee9e83103e77ed1a907ee5eec198fef3a5b45abf13"
 
 load("//tools/workspace:default.bzl", "add_default_repositories")
 
