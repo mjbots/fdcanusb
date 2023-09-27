@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "fdcanusb")(type "KiCad")(uri "${KIPRJMOD}/fdcanusb.kicad_sym")(options "")(descr ""))
+  (lib (name "moteus")(type "KiCad")(uri "/home/josh/prog/moteus/hw/c1/moteus.kicad_sym")(options "")(descr ""))
+)

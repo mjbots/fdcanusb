@@ -1,3 +1,8 @@
 *.s#?
 *.l#?
 *.b#?
+*.bak
+*auto_saved_files*
+fdcanusb-backups
+old
+~*
