@@ -1061,6 +1061,9 @@
     (property "POPULATE" "1" (at 54.61 156.21 0)
       (effects (font (size 1.27 1.27)) hide)
     )
+    (property "MF" "SAMSUNG" (at 54.61 156.21 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
     (pin "1" (uuid c7c812e2-7992-4235-9ada-78e85427c3f3))
     (pin "2" (uuid 048813a9-e693-40e0-a642-541fb668de02))
     (instances
