@@ -4,6 +4,12 @@
 
   (paper "A4")
 
+  (title_block
+    (title "mjcanfd-usb-1x r4.2")
+    (company "mjbots Robotic Systems, LLC - info@mjbots.com - 2024")
+    (comment 1 "Licensed under the Apache 2.0 License")
+  )
+
   (lib_symbols
     (symbol "Device:C" (pin_numbers hide) (pin_names (offset 0.254)) (in_bom yes) (on_board yes)
       (property "Reference" "C" (at 0.635 2.54 0)

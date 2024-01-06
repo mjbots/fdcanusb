@@ -4,6 +4,12 @@
 
   (paper "A4")
 
+  (title_block
+    (title "mjcanfd-usb-1x r4.2")
+    (company "mjbots Robotic Systems, LLC - info@mjbots.com - 2024")
+    (comment 1 "Licensed under the Apache 2.0 License")
+  )
+
   (lib_symbols
     (symbol "Connector_Generic:Conn_01x01" (pin_names (offset 1.016) hide) (in_bom yes) (on_board yes)
       (property "Reference" "J" (at 0 2.54 0)

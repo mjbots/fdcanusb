@@ -5050,7 +5050,7 @@
   (gr_text "(c) 2024" (at 133.7 97.75) (layer "B.SilkS") (tstamp bdbc0c12-cb85-4dd0-9e54-5905c2007f25)
     (effects (font (size 0.8 0.8) (thickness 0.125)) (justify left bottom mirror))
   )
-  (gr_text "mjcanfd-usb-1x r4.1" (at 133 96) (layer "B.SilkS") (tstamp e5d4edd9-aff8-4281-8839-a9eaa7765625)
+  (gr_text "mjcanfd-usb-1x r4.2" (at 133 96) (layer "B.SilkS") (tstamp e5d4edd9-aff8-4281-8839-a9eaa7765625)
     (effects (font (size 0.7 0.7) (thickness 0.125)) (justify left bottom mirror))
   )
   (gr_text "5" (at 124.15 93.2) (layer "B.SilkS") (tstamp f37dc61d-fb92-4d4c-83a3-cf9000830cb6)
