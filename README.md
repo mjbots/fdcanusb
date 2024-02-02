@@ -10,7 +10,7 @@ Pre-assembled hardware can be purchased at https://mjbots.com/products/fdcanusb
 
 # Building #
 
-To build on an Ubuntu 22.04 or newer system (no dependencies should be required).
+To build on an Ubuntu 22.04 or newer system.
 
 ```
 sudo apt install curl openocd
