@@ -10,9 +10,10 @@ Pre-assembled hardware can be purchased at https://mjbots.com/products/fdcanusb
 
 # Building #
 
-To build on an Ubuntu 18.04 or newer system (no dependencies should be required).
+To build on an Ubuntu 22.04 or newer system (no dependencies should be required).
 
 ```
+sudo apt install curl openocd
 ./tools/bazel build //fw:fdcanusb.bin
 ```
 
@@ -21,8 +22,6 @@ To flash:
 ```
 ./flash.sh
 ```
-
-This requires an openocd that supports the stm32g4, (which as of 2020-01-01 upstream does not).  You can use: https://github.com/mjbots/openocd/
 
 # Protocol #
 
