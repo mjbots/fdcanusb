@@ -83,10 +83,10 @@ void ErrorIf(bool value, const char* format, ...) {
   }
 }
 
-void SetNonblock(int fd) {
+void SetBlocking(int fd) {
   int flags = ::fcntl(fd, F_GETFL, 0);
   ErrorIf(flags < 0, "error getting flags");
-  flags |= O_NONBLOCK;
+  flags &= ~O_NONBLOCK;
   ErrorIf(::fcntl(fd, F_SETFL, flags), "error setting flags");
 }
 
@@ -213,6 +213,8 @@ int main(int argc, char** argv) {
   int fd = ::open(tty.c_str(), O_RDWR | O_NONBLOCK | O_NOCTTY);
   ErrorIf(fd < 0, "failed to open device %s", tty.c_str());
 
+  SetBlocking(fd);
+
   // Set low-latency.
   {
     struct serial_struct serial = {};
@@ -241,14 +243,11 @@ int main(int argc, char** argv) {
     ErrorIf(::tcsetattr(fd, TCSANOW, &tty) != 0, "error setting termios");
   }
 
-  SetNonblock(fd);
-
-
   // Now open the CAN interface.
   int socket = ::socket(PF_CAN, SOCK_RAW, CAN_RAW);
   ErrorIf(socket < 0, "error opening CAN socket");
 
-  SetNonblock(socket);
+  SetBlocking(socket);
 
   struct ifreq ifr = {};
   std::strncpy(&ifr.ifr_name[0], ifname.c_str(), sizeof(ifr.ifr_name) - 1);
