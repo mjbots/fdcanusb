@@ -288,14 +288,24 @@ int main(int argc, char** argv) {
 
     if (FD_ISSET(socket, &rfds)) {
       // Read a CAN message, forward to fdcanusb.
-      ErrorIf(::read(socket, &recv_frame, sizeof(recv_frame)) < 0,
-              "error reading CAN frame");
+      const ssize_t nread = ::read(socket, &recv_frame, sizeof(recv_frame));
+      ErrorIf(nread < 0, "error reading CAN frame");
+
+      // In newer kernel versions, the CANFD_FDF flag is set for FD frames, but for
+      // compatibility with older kernels, we distinguish by the struct size.
+      const bool is_fd = (nread == CANFD_MTU);
+      const bool is_brs = is_fd && recv_frame.flags & CANFD_BRS;
+      const bool is_rtr = recv_frame.can_id & CAN_RTR_FLAG;
       std::ostringstream cmd;
       Append(&cmd, "can send %X ", recv_frame.can_id & 0x1fffffff);
       for (int i = 0; i < recv_frame.len; i++) {
         Append(&cmd, "%02X", static_cast<int>(recv_frame.data[i]));
       }
-      Append(&cmd, "\n");
+      Append(&cmd, " %c%c%c\n",
+              (is_brs ? 'B' : 'b'),
+              (is_fd ? 'F' : 'f'),
+              (is_rtr ? 'R' : 'r')
+      );
 
       if (verbose) {
         // DEBUG
@@ -338,11 +348,41 @@ int main(int argc, char** argv) {
           const auto data = tokenizer.next();
           if (address.empty() || data.empty()) { continue; }
 
+          bool is_ext = false;
+          bool is_fd = false;
+          bool is_brs = false;
+          bool is_rtr = false;
+
+          for (;;) {
+            const std::string f = tokenizer.next();
+            if (f.empty()) { break; }
+            if (f == "B") { is_brs = true; }
+            else if (f == "b") { is_brs = false; }
+            else if (f == "F") { is_fd = true; }
+            else if (f == "f") { is_fd = false; }
+            else if (f == "E") { is_ext = true; }
+            else if (f == "e") { is_ext = false; }
+            else if (f == "R") { is_rtr = true; }
+            else if (f == "r") { is_rtr = false; }
+          }
+
           struct canfd_frame send_frame = {};
           send_frame.can_id = std::stoul(address, nullptr, 16);
+          if (is_ext) {
+            send_frame.can_id |= CAN_EFF_FLAG;
+          }
+          if (is_rtr) {
+            send_frame.can_id |= CAN_RTR_FLAG;
+          }
           send_frame.len = ParseCanData(data, send_frame.data);
+          if (is_fd) {
+            send_frame.flags |= CANFD_FDF;
+            if (is_brs) {
+              send_frame.flags |= CANFD_BRS;
+            }
+          }
 
-          ErrorIf(::write(socket, &send_frame, sizeof(send_frame)) < 0,
+          ErrorIf(::write(socket, &send_frame, is_fd ? CANFD_MTU : CAN_MTU) < 0,
                   "error writing CAN");
 
         } else {
