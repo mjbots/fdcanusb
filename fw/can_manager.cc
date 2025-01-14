@@ -41,6 +41,7 @@ struct Config {
   bool bus_monitor = false;
   bool termination = true;
   bool autostart = true;
+  bool autorecover = false;
 
   // We by default start out set for a TCAN1057 with its longer loop delay:
   //  start - 13 / 85MHz ~= 152ns
@@ -123,6 +124,7 @@ struct Config {
     a->Visit(MJ_NVP(bus_monitor));
     a->Visit(MJ_NVP(termination));
     a->Visit(MJ_NVP(autostart));
+    a->Visit(MJ_NVP(autorecover));
     a->Visit(MJ_NVP(delay_compensation));
     a->Visit(MJ_NVP(tdc_offset));
     a->Visit(MJ_NVP(tdc_filter));
@@ -424,6 +426,13 @@ class CanManager::Impl {
   void Poll10Ms() {
     led_rx_.write(0);
     led_tx_.write(0);
+
+    if (config_.autorecover) {
+      const auto status = can_->status();
+      if (status.BusOff) {
+        can_->RecoverBusOff();
+      }
+    }
   }
 
   void Poll() {

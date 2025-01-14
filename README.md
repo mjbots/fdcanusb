@@ -192,6 +192,7 @@ The following items may be configured.
 * *can.bus_monitor* - Transmit nothing.
 * *can.termination* - Enable the onboard terminator
 * *can.autostart* - Enter BusOn immediately at power-on
+* *can.autorecover* - Automatically recover from bus off events
 
 * *can.global.std_action*
 * *can.global.ext_action*
