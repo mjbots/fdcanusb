@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <termios.h>
 
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
