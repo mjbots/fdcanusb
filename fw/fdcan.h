@@ -61,7 +61,9 @@ class FDCan {
     PinName td = NC;
     PinName rd = NC;
     int slow_bitrate = 1000000;
+    float slow_sample_point = 0.666;
     int fast_bitrate = 5000000;
+    float fast_sample_point = 0.666;
 
     bool automatic_retransmission = false;
     bool remote_frame = false;

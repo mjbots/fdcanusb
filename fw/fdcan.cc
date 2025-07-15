@@ -41,7 +41,8 @@ constexpr uint32_t RoundUpDlc(size_t size) {
   return 0;
 }
 
-FDCan::Rate MakeTime(int bitrate, int max_time_seg1, int max_time_seg2) {
+FDCan::Rate MakeTime(int bitrate, int max_time_seg1, int max_time_seg2,
+                     float sample_point) {
   FDCan::Rate result;
 
   result.prescaler = 1;
@@ -55,8 +56,9 @@ FDCan::Rate MakeTime(int bitrate, int max_time_seg1, int max_time_seg2) {
     // One of the divisor counts comes for free.
     const auto actual_divisor = total_divisor - 1;
 
-    // Split up the remainder roughly 3/1
-    result.time_seg2 = actual_divisor / 3;
+    // Split up the remainder to get the desired sample point.
+    result.time_seg2 = static_cast<int>(
+        static_cast<float>(actual_divisor) * (1.0f - sample_point));
     result.time_seg1 = actual_divisor - result.time_seg2;
 
     result.sync_jump_width = std::min(16, result.time_seg2);
@@ -129,10 +131,12 @@ FDCan::FDCan(const Options& options)
   can.Init.TransmitPause = ENABLE;
   can.Init.ProtocolException = DISABLE;
 
-  auto nominal = ApplyRateOverride(MakeTime(options.slow_bitrate, 255, 127),
-                                   options.rate_override);
-  auto fast = ApplyRateOverride(MakeTime(options.fast_bitrate, 31, 15),
-                                options.fdrate_override);
+  auto nominal = ApplyRateOverride(
+      MakeTime(options.slow_bitrate, 255, 127, options.slow_sample_point),
+      options.rate_override);
+  auto fast = ApplyRateOverride(
+      MakeTime(options.fast_bitrate, 31, 15, options.fast_sample_point),
+      options.fdrate_override);
 
   config_.clock = HAL_RCC_GetPCLK1Freq();
   config_.nominal = nominal;

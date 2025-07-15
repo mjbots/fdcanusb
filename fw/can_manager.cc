@@ -34,6 +34,8 @@ constexpr std::size_t kFilterSize = 16;
 struct Config {
   int32_t bitrate = 1000000;
   int32_t fd_bitrate = 5000000;
+  float sample_point = 0.666f;
+  float fd_sample_point = 0.666f;
   bool automatic_retransmission = false;
   bool fdcan_frame = true;
   bool bitrate_switch = true;
@@ -117,6 +119,8 @@ struct Config {
   void Serialize(Archive* a) {
     a->Visit(MJ_NVP(bitrate));
     a->Visit(MJ_NVP(fd_bitrate));
+    a->Visit(MJ_NVP(sample_point));
+    a->Visit(MJ_NVP(fd_sample_point));
     a->Visit(MJ_NVP(automatic_retransmission));
     a->Visit(MJ_NVP(fdcan_frame));
     a->Visit(MJ_NVP(bitrate_switch));
@@ -269,7 +273,9 @@ class CanManager::Impl {
         options.rd = options_.rd;
 
         options.slow_bitrate = config_.bitrate;
+        options.slow_sample_point = config_.sample_point;
         options.fast_bitrate = config_.fd_bitrate;
+        options.fast_sample_point = config_.fd_sample_point;
         options.automatic_retransmission = config_.automatic_retransmission;
         options.fdcan_frame = config_.fdcan_frame;
         options.bitrate_switch = config_.bitrate_switch;

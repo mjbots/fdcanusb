@@ -183,6 +183,12 @@ The following items may be configured.
   if bitrate switching is used.
 * *can.fd_bitrate* - The bitrate used for the data and CRC field when
   bitrate switching is used.
+* *can.sample_point* - The sample point for the nominal part of the
+  CAN frame.  moteus requires 0.666, some other systems default to
+  0.75, 0.8, or 0.87.
+* *can.fd_sample_sample* - The sample point for the data (BRS) part of
+  the CAN frame.  moteus requires 0.666, other systems may require
+  alternate settings.
 * *can.automatic_retransmission* - When true/non-zero, frames will be
   retried until acknowledged.
 * *can.fdcan_frame* - By default, send frames in FDCAN mode
