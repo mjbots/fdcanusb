@@ -197,6 +197,7 @@ class Stm32G4AsyncUsbCdc::Impl {
   }
 
   void Poll() {
+    ProcessWrite();
     usbd_poll(&udev_);
   }
 
@@ -221,6 +222,29 @@ class Stm32G4AsyncUsbCdc::Impl {
     current_write_callback_ = callback;
     current_write_data_ = data;
     current_write_size_ = data.size();
+  }
+
+  void ProcessWrite() {
+    if (!current_write_callback_) {
+      return;
+    }
+
+    // See if we can fill this now.
+    if (buffer_.size < CDC_DATA_SZ) {
+      const auto to_write = std::min(
+          current_write_data_.size(),
+          (CDC_DATA_SZ - buffer_.size));
+      std::memcpy(&buffer_.buf[buffer_.size],
+                  current_write_data_.data(),
+                  to_write);
+      buffer_.size += to_write;
+
+      auto copy = current_write_callback_;
+      current_write_callback_ = {};
+      current_write_data_ = {};
+
+      copy(micro::error_code(), to_write);
+    }
   }
 
   usbd_respond cdc_setconf(uint8_t cfg) {
@@ -327,7 +351,7 @@ class Stm32G4AsyncUsbCdc::Impl {
   }
 
   void cdc_txonly(uint8_t event, uint8_t ep) {
-    if (!current_write_callback_) {
+    if (buffer_.size == 0) {
       // Write nothing.
       usbd_ep_write(&udev_, ep, fifo_, 0);
       return;
@@ -335,20 +359,8 @@ class Stm32G4AsyncUsbCdc::Impl {
 
     led_com_.write(1);
 
-    const auto to_write = std::min<int>(current_write_data_.size(), CDC_DATA_SZ);
-
-    usbd_ep_write(&udev_, ep, const_cast<void*>(reinterpret_cast<const void*>(
-                                                    current_write_data_.data())),
-                  to_write);
-    current_write_data_ = std::string_view(
-        current_write_data_.data() + to_write,
-        current_write_data_.size() - to_write);
-    if (current_write_data_.size() == 0) {
-      auto copy = current_write_callback_;
-      current_write_callback_ = {};
-      current_write_data_ = {};
-      copy(micro::error_code(), current_write_size_);
-    }
+    usbd_ep_write(&udev_, ep, &buffer_.buf[0], buffer_.size);
+    buffer_.size = 0;
   }
 
   static usbd_respond g_cdc_setconf (usbd_device *dev, uint8_t cfg) {
@@ -387,6 +399,13 @@ private:
   micro::SizeCallback current_write_callback_;
   std::string_view current_write_data_;
   ssize_t current_write_size_ = {};
+
+  struct Buffer {
+    char buf[CDC_DATA_SZ] = {};
+    size_t size = 0;
+  };
+
+  Buffer buffer_;
 
   micro::SizeCallback current_read_callback_;
   mjlib::base::string_span current_read_data_;

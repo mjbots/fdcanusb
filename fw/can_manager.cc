@@ -30,6 +30,9 @@ namespace fw {
 namespace {
 
 constexpr std::size_t kFilterSize = 16;
+constexpr std::size_t kMaxEmittedLine = 256;
+constexpr std::size_t kBufferSize = 2048;
+
 
 struct Config {
   int32_t bitrate = 1000000;
@@ -444,20 +447,72 @@ class CanManager::Impl {
   void Poll() {
     if (!can_) { return; }
 
-    if (write_outstanding_) { return; }
+    if ((sizeof(device_buffer_->buf) - device_buffer_->pos) <
+        kMaxEmittedLine) {
+      // We do not have enough room remaining in our device buffer to
+      // emit another line.
+      return;
+    }
 
     const bool frame_found = can_->Poll(&rx_header_, rx_data_);
-    if (!frame_found) { return; }
+    if (!frame_found) {
+      if (!write_outstanding_ &&
+          device_buffer_->pos > 0) {
+        // We have data we need to emit.
+        EmitData();
+      }
+
+      return;
+    }
 
     led_rx_.write(1);
 
-    write_outstanding_ = true;
-    ssize_t pos = 0;
-    auto fmt = [&](auto ...args) {
-      pos += snprintf(&emit_line_[pos], sizeof(emit_line_) - pos, args...);
+    auto pos = &device_buffer_->pos;
+    auto buf = &device_buffer_->buf[0];
+
+    auto write_char = [&](uint8_t c) {
+      if ((kBufferSize - *pos) < 2) {
+        return;
+      }
+
+      buf[*pos] = c;
+      (*pos)++;
     };
 
-    fmt("rcv %X ", rx_header_.Identifier);
+    auto write_str = [&](auto str, size_t length) {
+      if ((kBufferSize - *pos) < length) {
+        return;
+      }
+
+      // This is intended to only be used with string constants, whose
+      // size includes the null terminator.  Thus we have to remove
+      // it.
+      std::memcpy(&buf[*pos], &str[0], length);
+      *pos += length;
+    };
+
+    auto write_hex = [&](uint8_t byte) {
+      const auto high_nyb = byte >> 4;
+      const auto low_nyb = byte & 0x0f;
+      constexpr const char* tohex = "0123456789ABCDEF";
+
+      write_char(tohex[high_nyb]);
+      write_char(tohex[low_nyb]);
+    };
+
+    auto write_hex32 = [&](uint32_t word) {
+      if (word > 0xffffff) { write_hex((word >> 24) & 0xff); }
+      if (word > 0xffff) { write_hex((word >> 16) & 0xff); }
+      if (word > 0xff) { write_hex((word >> 8) & 0xff); }
+      write_hex(word & 0xff);
+    };
+
+
+    write_str("rcv ", 4);
+
+    write_hex32(rx_header_.Identifier);
+    write_char(' ');
+
     const int dlc = [&]() {
       auto result = FDCan::ParseDlc(rx_header_.DataLength);
       if (rx_header_.FDFormat != FDCAN_FD_CAN) {
@@ -465,28 +520,58 @@ class CanManager::Impl {
       }
       return result;
     }();
+
     for (int i = 0; i < dlc; i++) {
-      fmt("%02X", rx_data_[i]);
+      write_hex(rx_data_[i]);
     }
 
-    fmt(" %c %c %c %c f%d\r\n",
-        (rx_header_.IdType == FDCAN_EXTENDED_ID) ? 'E' : 'e',
-        (rx_header_.BitRateSwitch == FDCAN_BRS_ON) ? 'B' : 'b',
-        (rx_header_.FDFormat == FDCAN_FD_CAN) ? 'F' : 'f',
-        (rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r',
-        !rx_header_.IsFilterMatchingFrame ? rx_header_.FilterIndex : -1);
+    write_char(' ');
+    write_char((rx_header_.IdType == FDCAN_EXTENDED_ID) ? 'E' : 'e');
+    write_char(' ');
+    write_char((rx_header_.BitRateSwitch == FDCAN_BRS_ON) ? 'B' : 'b');
+    write_char(' ');
+    write_char((rx_header_.FDFormat == FDCAN_FD_CAN) ? 'F' : 'f');
+    write_char(' ');
+    write_char((rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r');
+    write_char(' ');
+    write_char('f');
+    if (!rx_header_.IsFilterMatchingFrame) {
+      write_hex(rx_header_.FilterIndex);
+    } else {
+      write_str("-1", 2);
+    }
+
+    write_str("\r\n", 2);
+
+    buf[(*pos)] = 0;
+
+    // See if we can start our new emission.
+    if (write_outstanding_) { return; }
+
+    EmitData();
+  }
+
+  void EmitData() {
+    // We can swap buffers and start sending one.
+    std::swap(device_buffer_, host_buffer_);
+    device_buffer_->pos = 0;
+
+    write_outstanding_ = true;
 
     stream_.AsyncStart(
         [this](micro::AsyncWriteStream* write_stream,
                micro::VoidCallback done_callback) {
 
           done_callback_ = done_callback;
-          micro::AsyncWrite(*write_stream, emit_line_, [this](auto ec) {
-              auto done = this->done_callback_;
-              this->done_callback_ = {};
-              this->write_outstanding_ = false;
-              done();
-            });
+          micro::AsyncWrite(
+              *write_stream,
+              std::string_view(host_buffer_->buf, host_buffer_->pos),
+              [this](auto ec) {
+                auto done = this->done_callback_;
+                this->done_callback_ = {};
+                this->write_outstanding_ = false;
+                done();
+              });
         });
   }
 
@@ -506,8 +591,19 @@ class CanManager::Impl {
   FDCAN_RxHeaderTypeDef rx_header_ = {};
   char rx_data_[64] = {};
   bool write_outstanding_ = false;
-  char emit_line_[256] = {};
   char status_line_[256] = {};
+
+  struct OutputBuffer {
+    size_t pos = 0;
+    char buf[kBufferSize] = {};
+  };
+
+  bool led_value_ = false;
+
+  OutputBuffer emit_buffer1_, emit_buffer2_;
+
+  OutputBuffer* device_buffer_ = &emit_buffer1_;
+  OutputBuffer* host_buffer_ = &emit_buffer2_;
 
   micro::VoidCallback done_callback_;
 };
