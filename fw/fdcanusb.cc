@@ -156,7 +156,7 @@ int main(void) {
 
   fw::MillisecondTimer timer;
 
-  micro::SizedPool<12288> pool;
+  micro::SizedPool<16384> pool;
 
   fw::Stm32G4AsyncUsbCdc usb(&pool, {});
 
