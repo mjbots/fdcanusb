@@ -126,6 +126,10 @@ class FDCan {
 
   FDCAN_ProtocolStatusTypeDef status();
 
+  bool tx_queue_full() {
+    return (can_->TXFQS & FDCAN_TXFQS_TFQF) != 0;
+  }
+
   struct Config {
     int clock = 0;
     Rate nominal;

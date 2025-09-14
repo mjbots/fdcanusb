@@ -36,6 +36,7 @@ mbed_binary(
         "fdcan.h",
         "fdcan.cc",
         "fdcanusb.cc",
+        "fifo.h",
         "firmware_info.h",
         "firmware_info.cc",
         "millisecond_timer.h",

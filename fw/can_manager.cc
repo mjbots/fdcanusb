@@ -22,6 +22,7 @@
 #include "mjlib/base/visitor.h"
 
 #include "fw/fdcan.h"
+#include "fw/fifo.h"
 
 namespace base = mjlib::base;
 namespace micro = mjlib::micro;
@@ -379,7 +380,31 @@ class CanManager::Impl {
 
     led_tx_.write(1);
 
-    can_->Send(id, std::string_view(data, bytes), opts);
+    // If we already have things queued, then don't even try to send
+    // more.  That way we send things out in the order we were asked
+    // to.
+    const auto result =
+        !send_queue_.empty() ?
+        FDCan::kNoSpace :
+        can_->Send(id, std::string_view(data, bytes), opts);
+    switch (result) {
+      case FDCan::kNoSpace: {
+        // Attempt to stick this into one of our send queue entries.
+        SendQueueItem item;
+
+        std::memcpy(item.data, data, bytes);
+        item.bytes = bytes;
+        item.id = id;
+        item.opts = opts;
+
+        send_queue_.push(item);
+        break;
+      }
+      case FDCan::kSuccess: {
+        // All good here!
+        break;
+      }
+    }
 
     WriteOK(response);
   }
@@ -447,6 +472,38 @@ class CanManager::Impl {
   void Poll() {
     if (!can_) { return; }
 
+    // First, see if we can emit any more CAN frames onto the bus.
+    if (!send_queue_.empty()) {
+      // Check to see if there is space to emit anything.
+      if (!can_->tx_queue_full()) {
+        // We can send something!
+        const auto item = send_queue_.top();
+
+        const auto result = can_->Send(
+            item.id, std::string_view(item.data, item.bytes), item.opts);
+
+        switch (result) {
+          case FDCan::kSuccess: {
+            send_queue_.pop();
+            break;
+          }
+          case FDCan::kNoSpace: {
+            // Huh?
+            break;
+          }
+        }
+      }
+    }
+
+    // Then check if we can send anything over USB.
+    if (!write_outstanding_ &&
+        device_buffer_->pos > 0) {
+      // We have data we need to emit.
+      EmitData();
+    }
+
+    // We cannot accept more frames over USB if we are currently out
+    // of room to save the results.
     if ((sizeof(device_buffer_->buf) - device_buffer_->pos) <
         kMaxEmittedLine) {
       // We do not have enough room remaining in our device buffer to
@@ -454,14 +511,9 @@ class CanManager::Impl {
       return;
     }
 
+    // Finally, try to look for a new inbound CAN frame.
     const bool frame_found = can_->Poll(&rx_header_, rx_data_);
     if (!frame_found) {
-      if (!write_outstanding_ &&
-          device_buffer_->pos > 0) {
-        // We have data we need to emit.
-        EmitData();
-      }
-
       return;
     }
 
@@ -598,12 +650,19 @@ class CanManager::Impl {
     char buf[kBufferSize] = {};
   };
 
-  bool led_value_ = false;
-
   OutputBuffer emit_buffer1_, emit_buffer2_;
 
   OutputBuffer* device_buffer_ = &emit_buffer1_;
   OutputBuffer* host_buffer_ = &emit_buffer2_;
+
+  struct SendQueueItem {
+    char data[64] = {};
+    uint8_t bytes = 0;
+    uint32_t id = 0;
+    FDCan::SendOptions opts;
+  };
+
+  Fifo<SendQueueItem, 32> send_queue_;
 
   micro::VoidCallback done_callback_;
 };
