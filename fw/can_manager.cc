@@ -40,7 +40,7 @@ struct Config {
   int32_t fd_bitrate = 5000000;
   float sample_point = 0.666f;
   float fd_sample_point = 0.666f;
-  bool automatic_retransmission = false;
+  bool automatic_retransmission = true;
   bool fdcan_frame = true;
   bool bitrate_switch = true;
   bool restricted_mode = false;
@@ -119,6 +119,12 @@ struct Config {
   RateConfig rate;
   RateConfig fdrate;
 
+  // If no progress has been made sending frames in the last N ms,
+  // cancel the entire hardware CAN queue.  This can keep hardware
+  // from getting stuck if a frame is sent that nothing will ever
+  // acknowledge.  If zero, then never cancel frames.
+  uint32_t cancel_all_ms = 50;
+
   template <typename Archive>
   void Serialize(Archive* a) {
     a->Visit(MJ_NVP(bitrate));
@@ -140,6 +146,7 @@ struct Config {
     a->Visit(MJ_NVP(filter));
     a->Visit(MJ_NVP(rate));
     a->Visit(MJ_NVP(fdrate));
+    a->Visit(MJ_NVP(cancel_all_ms));
   }
 };
 
@@ -402,6 +409,9 @@ class CanManager::Impl {
       }
       case FDCan::kSuccess: {
         // All good here!
+
+        // Clear out our cancel count.
+        can_cancel_all_count_ = 0;
         break;
       }
     }
@@ -455,6 +465,17 @@ class CanManager::Impl {
   void WriteMessage(const std::string_view& message,
                     const micro::CommandManager::Response& response) {
     micro::AsyncWrite(*response.stream, message, response.callback);
+  }
+
+  void PollMillisecond() {
+    can_cancel_all_count_++;
+
+    if (can_ &&
+        can_cancel_all_count_ > config_.cancel_all_ms &&
+        config_.cancel_all_ms > 0) {
+      can_->CancelAll();
+      can_cancel_all_count_ = 0;
+    }
   }
 
   void Poll10Ms() {
@@ -665,6 +686,8 @@ class CanManager::Impl {
   Fifo<SendQueueItem, 32> send_queue_;
 
   micro::VoidCallback done_callback_;
+
+  uint32_t can_cancel_all_count_ = 0;
 };
 
 CanManager::CanManager(micro::Pool& pool,
@@ -678,6 +701,10 @@ CanManager::~CanManager() {}
 
 void CanManager::Poll() {
   impl_->Poll();
+}
+
+void CanManager::PollMillisecond() {
+  impl_->PollMillisecond();
 }
 
 void CanManager::Poll10Ms() {

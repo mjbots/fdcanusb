@@ -213,19 +213,28 @@ int main(void) {
   command_manager.AsyncStart();
   can_manager.Start();
 
+  auto old_time_ms = timer.read_ms();
+  int tenms_count = 0;
+
   while (true) {
-    const uint32_t start = timer.read_ms();
-    while (true) {
-      const uint32_t now = timer.read_ms();
-      if (now - start > 10) { break; }
+    uart.Poll();
+    can_manager.Poll();
+    usb.Poll();
 
-      uart.Poll();
-      can_manager.Poll();
-      usb.Poll();
+    const auto new_time = timer.read_ms();
+    if (new_time != old_time_ms) {
+      old_time_ms = new_time;
+
+      can_manager.PollMillisecond();
+
+      tenms_count++;
+      if (tenms_count >= 10) {
+        can_manager.Poll10Ms();
+        usb.Poll10Ms();
+
+        tenms_count = 0;
+      }
     }
-
-    can_manager.Poll10Ms();
-    usb.Poll10Ms();
   }
 }
 
