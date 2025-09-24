@@ -55,6 +55,7 @@ def main():
     run('tools/bazel build -c opt //...')
 
     run(f'cp bazel-bin/fw/fdcanusb.elf {outdir}/{datestr}-fdcanusb-{git_hash}.elf')
+    run(f'cp bazel-bin/fw/fdcanusb.bin {outdir}/{datestr}-fdcanusb-{git_hash}.bin')
 
     print()
     print('DONE')
