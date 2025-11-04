@@ -31,6 +31,7 @@
 #include "fw/stm32g4_flash.h"
 #include "fw/stm32g4_async_usb_cdc.h"
 #include "fw/uuid.h"
+#include "fw/xprintf.h"
 
 namespace {
 namespace base = mjlib::base;
@@ -160,20 +161,6 @@ int main(void) {
 
   fw::Stm32G4AsyncUsbCdc usb(&pool, {});
 
-  fw::Stm32G4AsyncUart uart(
-      &pool,
-      &timer,
-      []() {
-        fw::Stm32G4AsyncUart::Options options;
-
-        options.tx = PA_2;
-        options.rx = PA_3;
-        options.baud_rate = 115200;
-        options.rx_buffer_size = 300;
-
-        return options;
-      }());
-
   micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&usb);
   micro::CommandManager command_manager(
       &pool, &usb, &write_stream,
@@ -213,11 +200,19 @@ int main(void) {
   command_manager.AsyncStart();
   can_manager.Start();
 
+#ifdef MJBOTS_XPRINTF_DEBUG
+  fw::debug_print_init();
+#endif
+
   auto old_time_ms = timer.read_ms();
   int tenms_count = 0;
+  uint32_t loop_count = 0;
 
   while (true) {
-    uart.Poll();
+    loop_count++;
+#ifdef MJBOTS_XPRINTF_DEBUG
+    fw::debug_print_poll();
+#endif
     can_manager.Poll();
     usb.Poll();
 
@@ -232,7 +227,13 @@ int main(void) {
         can_manager.Poll10Ms();
         usb.Poll10Ms();
 
+#ifndef MJBOTS_XPRINTF_DEBUG
+        // To verify xprintf works:
+        xprintf("loop_count %d\r\n", loop_count);
+#endif
+
         tenms_count = 0;
+
       }
     }
   }

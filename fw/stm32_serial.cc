@@ -1,4 +1,4 @@
-// Copyright 2018-2019 Josh Pieper, jjp@pobox.com.
+// Copyright 2023 mjbots Robotic Systems, LLC.  info@mjbots.com
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,6 @@ namespace {
 int32_t GetMax16OversamplingBaud(UARTName uart) {
   switch (uart) {
     case UART_1:
-#if defined(TARGET_STM32F4)
-    case UART_6:
-#endif
       return 5620000;
     case UART_2:
     case UART_3:
@@ -55,6 +52,12 @@ void EnableUart(USART_TypeDef* uart) {
 #if defined (USART3_BASE)
   if (uart == USART3) {
     __HAL_RCC_USART3_CLK_ENABLE();
+    return;
+  }
+#endif
+#if defined (UART4_BASE)
+  if (uart == UART4) {
+    __HAL_RCC_UART4_CLK_ENABLE();
     return;
   }
 #endif
@@ -170,14 +173,17 @@ Stm32Serial::Stm32Serial(const Options& options) {
        UART_OVERSAMPLING_8 :
        UART_OVERSAMPLING_16);
 
+#if defined(TARGET_STM32G4)
   huart_.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart_.Init.ClockPrescaler = UART_PRESCALER_DIV1;
   huart_.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+#endif
 
   if (HAL_UART_Init(&huart_) != HAL_OK) {
     mbed_die();
   }
 
+#if defined(TARGET_STM32G4)
   if (HAL_UARTEx_SetTxFifoThreshold(
           &huart_, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
     mbed_die();
@@ -189,6 +195,7 @@ Stm32Serial::Stm32Serial(const Options& options) {
   if (HAL_UARTEx_EnableFifoMode(&huart_) != HAL_OK) {
     mbed_die();
   }
+#endif
 }
 
 }

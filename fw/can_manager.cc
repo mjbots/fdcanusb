@@ -385,7 +385,9 @@ class CanManager::Impl {
       opts.extended_id = FDCan::Override::kRequire;
     }
 
+#ifndef MJBOTS_XPRINTF_DEBUG
     led_tx_.write(1);
+#endif
 
     // If we already have things queued, then don't even try to send
     // more.  That way we send things out in the order we were asked
@@ -480,7 +482,9 @@ class CanManager::Impl {
 
   void Poll10Ms() {
     led_rx_.write(0);
+#ifndef MJBOTS_XPRINTF_DEBUG
     led_tx_.write(0);
+#endif
 
     if (config_.autorecover) {
       const auto status = can_->status();
@@ -659,7 +663,9 @@ class CanManager::Impl {
   DigitalOut can_term_{PB_14, 0};
 
   DigitalOut led_rx_{PB_4, 0};
+#ifndef MJBOTS_XPRINTF_DEBUG
   DigitalOut led_tx_{PB_3, 0};
+#endif
 
   FDCAN_RxHeaderTypeDef rx_header_ = {};
   char rx_data_[64] = {};
