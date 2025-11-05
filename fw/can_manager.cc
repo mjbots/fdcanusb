@@ -425,7 +425,7 @@ class CanManager::Impl {
     write_char(' ');
     write_char((rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r');
     write_char(' ');
-    write_char('f');
+    write_char('x');
     if (!rx_header_.IsFilterMatchingFrame) {
       write_hex(rx_header_.FilterIndex);
     } else {
