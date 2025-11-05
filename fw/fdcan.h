@@ -141,7 +141,45 @@ class FDCan {
 
   Config config() const;
 
-  static int ParseDlc(uint32_t dlc_code);
+  static uint8_t DlcToSize(uint8_t dlc_code) {
+    if (dlc_code == 0) { return 0; }
+    if (dlc_code == 1) { return 1; }
+    if (dlc_code == 2) { return 2; }
+    if (dlc_code == 3) { return 3; }
+    if (dlc_code == 4) { return 4; }
+    if (dlc_code == 5) { return 5; }
+    if (dlc_code == 6) { return 6; }
+    if (dlc_code == 7) { return 7; }
+    if (dlc_code == 8) { return 8; }
+    if (dlc_code == 9) { return 12; }
+    if (dlc_code == 10) { return 16; }
+    if (dlc_code == 11) { return 20; }
+    if (dlc_code == 12) { return 24; }
+    if (dlc_code == 13) { return 32; }
+    if (dlc_code == 14) { return 48; }
+    if (dlc_code == 15) { return 64; }
+    return 64;
+  }
+
+  static uint8_t SizeToDlc(uint8_t size) {
+    if (size == 0) { return 0; }
+    if (size == 1) { return 1; }
+    if (size == 2) { return 2; }
+    if (size == 3) { return 3; }
+    if (size == 4) { return 4; }
+    if (size == 5) { return 5; }
+    if (size == 6) { return 6; }
+    if (size == 7) { return 7; }
+    if (size == 8) { return 8; }
+    if (size <= 12) { return 9; }
+    if (size <= 16) { return 10; }
+    if (size <= 20) { return 11; }
+    if (size <= 24) { return 12; }
+    if (size <= 32) { return 13; }
+    if (size <= 48) { return 14; }
+    if (size <= 64) { return 15; }
+    return 15;
+  }
 
  private:
   const Options options_;

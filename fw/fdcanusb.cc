@@ -30,6 +30,7 @@
 #include "fw/stm32g4_async_uart.h"
 #include "fw/stm32g4_flash.h"
 #include "fw/stm32g4_async_usb_cdc.h"
+#include "fw/stm32g4_gs_usb.h"
 #include "fw/uuid.h"
 #include "fw/xprintf.h"
 
@@ -103,6 +104,10 @@ class ClockManager {
       });
   }
 
+  int32_t clock_hz() const {
+    return clock_.can_hz;
+  }
+
   void UpdateConfig() {
     const int can_clock_hz = [&]() {
       if (clock_.can_hz >= 85000000) { return 85000000; }
@@ -157,9 +162,15 @@ int main(void) {
 
   fw::MillisecondTimer timer;
 
-  micro::SizedPool<16384> pool;
+  micro::SizedPool<20480> pool;
 
-  fw::Stm32G4AsyncUsbCdc usb(&pool, {});
+  fw::Stm32G4AsyncUsbCdc usb(
+      &pool,
+      [&]() {
+        fw::Stm32G4AsyncUsbCdc::Options options;
+        options.timer = &timer;
+        return options;
+      }());
 
   micro::AsyncExclusive<micro::AsyncWriteStream> write_stream(&usb);
   micro::CommandManager command_manager(
@@ -183,12 +194,36 @@ int main(void) {
 
   fw::CanManager can_manager(
       pool, persistent_config, command_manager, write_stream,
-      []() {
+      [&]() {
         fw::CanManager::Options options;
         options.td = PB_13;
         options.rd = PB_12;
+        options.cdc = &usb;
         return options;
       }());
+
+  fw::Stm32G4GsUsb gs_usb(pool, can_manager, [&]() {
+    fw::Stm32G4GsUsb::Options options;
+    options.get_can_clock_hz = [&]() { return clock.clock_hz(); };
+    options.power_led = &power_led;
+    options.timer = &timer;
+    return options;
+  }());
+
+  usb.RegisterGsUsbHandler([&gs_usb](auto* dev, auto* req, auto* callback) {
+    return gs_usb.HandleControl(dev, req, callback);
+  });
+  usb.RegisterGsUsbEndpointHandlers(
+      [&gs_usb](usbd_device* dev, uint8_t event, uint8_t ep) {
+        gs_usb.HandleRxEndpoint(dev, event, ep);
+      },
+      [&gs_usb](usbd_device* dev, uint8_t event, uint8_t ep) {
+        gs_usb.HandleTxEndpoint(dev, event, ep);
+      });
+  can_manager.RegisterFrameCallback(
+      [&gs_usb](const fw::CanManager::CanFrame& frame) {
+        gs_usb.OnCanFrameReceived(frame);
+      });
 
   fw::FirmwareInfo firmware_info(pool, telemetry_manager);
 
@@ -215,12 +250,14 @@ int main(void) {
 #endif
     can_manager.Poll();
     usb.Poll();
+    gs_usb.Poll();
 
     const auto new_time = timer.read_ms();
     if (new_time != old_time_ms) {
       old_time_ms = new_time;
 
       can_manager.PollMillisecond();
+      gs_usb.PollMillisecond();
 
       tenms_count++;
       if (tenms_count >= 10) {

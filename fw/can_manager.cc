@@ -23,6 +23,7 @@
 
 #include "fw/fdcan.h"
 #include "fw/fifo.h"
+#include "fw/stm32g4_async_usb_cdc.h"
 
 namespace base = mjlib::base;
 namespace micro = mjlib::micro;
@@ -187,6 +188,262 @@ class CanManager::Impl {
 
     StartCan();
   }
+
+  bool bus_active() const {
+    return can_.has_value();
+  }
+
+  void SetBusActive(bool active) {
+    if (active && !can_) {
+      StartCan();
+    } else if (!active && can_) {
+      can_.reset();
+    }
+  }
+
+  bool SendFrame(const CanFrame& frame, uint32_t context) {
+    if (!can_) { return false; }
+
+    FDCan::SendOptions opts;
+    constexpr auto kRequire = FDCan::Override::kRequire;
+    constexpr auto kDisable = FDCan::Override::kDisable;
+
+    opts.extended_id = frame.extended ? kRequire : kDisable;
+    opts.remote_frame = frame.remote ? kRequire : kDisable;
+    opts.fdcan_frame = frame.fd_frame ? kRequire : kDisable;
+    opts.bitrate_switch = frame.bitrate_switch ? kRequire : kDisable;
+
+    const auto result = can_->Send(
+        frame.id,
+        std::string_view(reinterpret_cast<const char*>(frame.data), frame.size),
+        opts);
+
+    if (result == FDCan::kNoSpace) {
+      if (!send_queue_.full()) {
+        SendQueueItem item;
+        std::memcpy(item.data, frame.data, frame.size);
+        item.bytes = frame.size;
+        item.id = frame.id;
+        item.opts = opts;
+        item.context = context;
+        send_queue_.push(item);
+
+        if (tx_complete_callback_) {
+          tx_complete_callback_(context, true);
+        }
+        return true;
+      }
+
+      if (tx_complete_callback_) {
+        tx_complete_callback_(context, false);
+      }
+      // All queues were full.
+      return false;
+    }
+
+    if (result == FDCan::kSuccess && tx_complete_callback_) {
+      tx_complete_callback_(context, true);
+    }
+
+    return result == FDCan::kSuccess;
+  }
+
+  void RegisterFrameCallback(CanManager::FrameCallback callback) {
+    frame_callback_ = std::move(callback);
+  }
+
+  void RegisterTxCompleteCallback(CanManager::TxCompleteCallback callback) {
+    tx_complete_callback_ = std::move(callback);
+  }
+
+  void PollMillisecond() {
+    can_cancel_all_count_++;
+
+    if (can_ &&
+        can_cancel_all_count_ > config_.cancel_all_ms &&
+        config_.cancel_all_ms > 0) {
+      can_->CancelAll();
+      can_cancel_all_count_ = 0;
+    }
+  }
+
+  void Poll10Ms() {
+    led_rx_.write(0);
+#ifndef MJBOTS_XPRINTF_DEBUG
+    led_tx_.write(0);
+#endif
+
+    if (config_.autorecover) {
+      const auto status = can_->status();
+      if (status.BusOff) {
+        can_->RecoverBusOff();
+      }
+    }
+  }
+
+  void Poll() {
+    if (!can_) { return; }
+
+    // First, see if we can emit any more CAN frames onto the bus.
+    if (!send_queue_.empty()) {
+      // Check to see if there is space to emit anything.
+      if (!can_->tx_queue_full()) {
+        // We can send something!
+        const auto item = send_queue_.top();
+
+        const auto result = can_->Send(
+            item.id, std::string_view(item.data, item.bytes), item.opts);
+
+        switch (result) {
+          case FDCan::kSuccess: {
+            send_queue_.pop();
+            break;
+          }
+          case FDCan::kNoSpace: {
+            // Huh?
+            break;
+          }
+        }
+      }
+    }
+
+    // Then check if we can send anything over USB.
+    if (!write_outstanding_ &&
+        device_buffer_->pos > 0) {
+      // We have data we need to emit.
+      EmitData();
+    }
+
+    // We cannot accept more frames over USB if we are currently out
+    // of room to save the results.
+    if ((sizeof(device_buffer_->buf) - device_buffer_->pos) <
+        kMaxEmittedLine) {
+      // We do not have enough room remaining in our device buffer to
+      // emit another line.
+      return;
+    }
+
+    // Finally, try to look for a new inbound CAN frame.
+    const bool frame_found = can_->Poll(&rx_header_, rx_data_);
+    if (!frame_found) {
+      return;
+    }
+
+    led_rx_.write(1);
+
+    if (frame_callback_) {
+      CanManager::CanFrame frame;
+      frame.id = rx_header_.Identifier;
+      frame.size = FDCan::DlcToSize(rx_header_.DataLength >> 16);
+      if (rx_header_.FDFormat != FDCAN_FD_CAN) {
+        frame.size = std::min<uint8_t>(8, frame.size);
+      }
+      std::memcpy(frame.data, rx_data_, frame.size);
+      frame.extended = (rx_header_.IdType == FDCAN_EXTENDED_ID);
+      frame.remote = (rx_header_.RxFrameType == FDCAN_REMOTE_FRAME);
+      frame.fd_frame = (rx_header_.FDFormat == FDCAN_FD_CAN);
+      frame.bitrate_switch = (rx_header_.BitRateSwitch == FDCAN_BRS_ON);
+      frame_callback_(frame);
+    }
+
+    // If our CDC interface is not active, then don't go any further.
+    const bool cdc_active = (options_.cdc && options_.cdc->IsCdcActive());
+    if (!cdc_active) {
+      return;
+    }
+
+    // Do we have room?
+    if ((sizeof(device_buffer_->buf) - device_buffer_->pos) < kMaxEmittedLine) {
+      // We don't, so just don't emit it over CDC.
+      return;
+    }
+
+    auto pos = &device_buffer_->pos;
+    auto buf = &device_buffer_->buf[0];
+
+    auto write_char = [&](uint8_t c) {
+      if ((kBufferSize - *pos) < 2) {
+        return;
+      }
+
+      buf[*pos] = c;
+      (*pos)++;
+    };
+
+    auto write_str = [&](auto str, size_t length) {
+      if ((kBufferSize - *pos) < length) {
+        return;
+      }
+
+      // This is intended to only be used with string constants, whose
+      // size includes the null terminator.  Thus we have to remove
+      // it.
+      std::memcpy(&buf[*pos], &str[0], length);
+      *pos += length;
+    };
+
+    auto write_hex = [&](uint8_t byte) {
+      const auto high_nyb = byte >> 4;
+      const auto low_nyb = byte & 0x0f;
+      constexpr const char* tohex = "0123456789ABCDEF";
+
+      write_char(tohex[high_nyb]);
+      write_char(tohex[low_nyb]);
+    };
+
+    auto write_hex32 = [&](uint32_t word) {
+      if (word > 0xffffff) { write_hex((word >> 24) & 0xff); }
+      if (word > 0xffff) { write_hex((word >> 16) & 0xff); }
+      if (word > 0xff) { write_hex((word >> 8) & 0xff); }
+      write_hex(word & 0xff);
+    };
+
+
+    write_str("rcv ", 4);
+
+    write_hex32(rx_header_.Identifier);
+    write_char(' ');
+
+    const int dlc = [&]() {
+      auto result = FDCan::DlcToSize(rx_header_.DataLength >> 16);
+      if (rx_header_.FDFormat != FDCAN_FD_CAN) {
+        result = std::min<uint8_t>(8, result);
+      }
+      return result;
+    }();
+
+    for (int i = 0; i < dlc; i++) {
+      write_hex(rx_data_[i]);
+    }
+
+    write_char(' ');
+    write_char((rx_header_.IdType == FDCAN_EXTENDED_ID) ? 'E' : 'e');
+    write_char(' ');
+    write_char((rx_header_.BitRateSwitch == FDCAN_BRS_ON) ? 'B' : 'b');
+    write_char(' ');
+    write_char((rx_header_.FDFormat == FDCAN_FD_CAN) ? 'F' : 'f');
+    write_char(' ');
+    write_char((rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r');
+    write_char(' ');
+    write_char('f');
+    if (!rx_header_.IsFilterMatchingFrame) {
+      write_hex(rx_header_.FilterIndex);
+    } else {
+      write_str("-1", 2);
+    }
+
+    write_str("\r\n", 2);
+
+    buf[(*pos)] = 0;
+
+    // See if we can start our new emission.
+    if (write_outstanding_) { return; }
+
+    EmitData();
+  }
+
+  // The following are logically private:
+  // private:
 
   void UpdateConfig() {
     can_term_.write(config_.termination ? 0 : 1);
@@ -469,165 +726,6 @@ class CanManager::Impl {
     micro::AsyncWrite(*response.stream, message, response.callback);
   }
 
-  void PollMillisecond() {
-    can_cancel_all_count_++;
-
-    if (can_ &&
-        can_cancel_all_count_ > config_.cancel_all_ms &&
-        config_.cancel_all_ms > 0) {
-      can_->CancelAll();
-      can_cancel_all_count_ = 0;
-    }
-  }
-
-  void Poll10Ms() {
-    led_rx_.write(0);
-#ifndef MJBOTS_XPRINTF_DEBUG
-    led_tx_.write(0);
-#endif
-
-    if (config_.autorecover) {
-      const auto status = can_->status();
-      if (status.BusOff) {
-        can_->RecoverBusOff();
-      }
-    }
-  }
-
-  void Poll() {
-    if (!can_) { return; }
-
-    // First, see if we can emit any more CAN frames onto the bus.
-    if (!send_queue_.empty()) {
-      // Check to see if there is space to emit anything.
-      if (!can_->tx_queue_full()) {
-        // We can send something!
-        const auto item = send_queue_.top();
-
-        const auto result = can_->Send(
-            item.id, std::string_view(item.data, item.bytes), item.opts);
-
-        switch (result) {
-          case FDCan::kSuccess: {
-            send_queue_.pop();
-            break;
-          }
-          case FDCan::kNoSpace: {
-            // Huh?
-            break;
-          }
-        }
-      }
-    }
-
-    // Then check if we can send anything over USB.
-    if (!write_outstanding_ &&
-        device_buffer_->pos > 0) {
-      // We have data we need to emit.
-      EmitData();
-    }
-
-    // We cannot accept more frames over USB if we are currently out
-    // of room to save the results.
-    if ((sizeof(device_buffer_->buf) - device_buffer_->pos) <
-        kMaxEmittedLine) {
-      // We do not have enough room remaining in our device buffer to
-      // emit another line.
-      return;
-    }
-
-    // Finally, try to look for a new inbound CAN frame.
-    const bool frame_found = can_->Poll(&rx_header_, rx_data_);
-    if (!frame_found) {
-      return;
-    }
-
-    led_rx_.write(1);
-
-    auto pos = &device_buffer_->pos;
-    auto buf = &device_buffer_->buf[0];
-
-    auto write_char = [&](uint8_t c) {
-      if ((kBufferSize - *pos) < 2) {
-        return;
-      }
-
-      buf[*pos] = c;
-      (*pos)++;
-    };
-
-    auto write_str = [&](auto str, size_t length) {
-      if ((kBufferSize - *pos) < length) {
-        return;
-      }
-
-      // This is intended to only be used with string constants, whose
-      // size includes the null terminator.  Thus we have to remove
-      // it.
-      std::memcpy(&buf[*pos], &str[0], length);
-      *pos += length;
-    };
-
-    auto write_hex = [&](uint8_t byte) {
-      const auto high_nyb = byte >> 4;
-      const auto low_nyb = byte & 0x0f;
-      constexpr const char* tohex = "0123456789ABCDEF";
-
-      write_char(tohex[high_nyb]);
-      write_char(tohex[low_nyb]);
-    };
-
-    auto write_hex32 = [&](uint32_t word) {
-      if (word > 0xffffff) { write_hex((word >> 24) & 0xff); }
-      if (word > 0xffff) { write_hex((word >> 16) & 0xff); }
-      if (word > 0xff) { write_hex((word >> 8) & 0xff); }
-      write_hex(word & 0xff);
-    };
-
-
-    write_str("rcv ", 4);
-
-    write_hex32(rx_header_.Identifier);
-    write_char(' ');
-
-    const int dlc = [&]() {
-      auto result = FDCan::ParseDlc(rx_header_.DataLength);
-      if (rx_header_.FDFormat != FDCAN_FD_CAN) {
-        result = std::min(8, result);
-      }
-      return result;
-    }();
-
-    for (int i = 0; i < dlc; i++) {
-      write_hex(rx_data_[i]);
-    }
-
-    write_char(' ');
-    write_char((rx_header_.IdType == FDCAN_EXTENDED_ID) ? 'E' : 'e');
-    write_char(' ');
-    write_char((rx_header_.BitRateSwitch == FDCAN_BRS_ON) ? 'B' : 'b');
-    write_char(' ');
-    write_char((rx_header_.FDFormat == FDCAN_FD_CAN) ? 'F' : 'f');
-    write_char(' ');
-    write_char((rx_header_.RxFrameType == FDCAN_REMOTE_FRAME) ? 'R' : 'r');
-    write_char(' ');
-    write_char('f');
-    if (!rx_header_.IsFilterMatchingFrame) {
-      write_hex(rx_header_.FilterIndex);
-    } else {
-      write_str("-1", 2);
-    }
-
-    write_str("\r\n", 2);
-
-    buf[(*pos)] = 0;
-
-    // See if we can start our new emission.
-    if (write_outstanding_) { return; }
-
-    EmitData();
-  }
-
   void EmitData() {
     // We can swap buffers and start sending one.
     std::swap(device_buffer_, host_buffer_);
@@ -687,6 +785,7 @@ class CanManager::Impl {
     uint8_t bytes = 0;
     uint32_t id = 0;
     FDCan::SendOptions opts;
+    uint32_t context = 0;
   };
 
   Fifo<SendQueueItem, 32> send_queue_;
@@ -694,6 +793,9 @@ class CanManager::Impl {
   micro::VoidCallback done_callback_;
 
   uint32_t can_cancel_all_count_ = 0;
+
+  CanManager::FrameCallback frame_callback_;
+  CanManager::TxCompleteCallback tx_complete_callback_;
 };
 
 CanManager::CanManager(micro::Pool& pool,
@@ -719,6 +821,40 @@ void CanManager::Poll10Ms() {
 
 void CanManager::Start() {
   impl_->Start();
+}
+
+bool CanManager::bus_active() const {
+  return impl_->bus_active();
+}
+
+void CanManager::SetBusActive(bool active) {
+  impl_->SetBusActive(active);
+}
+
+bool CanManager::SendFrame(const CanFrame& frame, uint32_t context) {
+  return impl_->SendFrame(frame, context);
+}
+
+void CanManager::RegisterFrameCallback(FrameCallback callback) {
+  impl_->RegisterFrameCallback(callback);
+}
+
+void CanManager::RegisterTxCompleteCallback(TxCompleteCallback callback) {
+  impl_->RegisterTxCompleteCallback(callback);
+}
+
+void CanManager::SetNominalTiming(const BitTiming& timing) {
+  impl_->config_.rate.prescaler = timing.prescaler;
+  impl_->config_.rate.sync_jump_width = timing.sync_jump_width;
+  impl_->config_.rate.time_seg1 = timing.time_seg1;
+  impl_->config_.rate.time_seg2 = timing.time_seg2;
+}
+
+void CanManager::SetDataTiming(const BitTiming& timing) {
+  impl_->config_.fdrate.prescaler = timing.prescaler;
+  impl_->config_.fdrate.sync_jump_width = timing.sync_jump_width;
+  impl_->config_.fdrate.time_seg1 = timing.time_seg1;
+  impl_->config_.fdrate.time_seg2 = timing.time_seg2;
 }
 
 }
