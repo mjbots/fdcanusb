@@ -1,3 +1,4 @@
 /bazel-*
 *~
 sw/fdcanusb_daemon
+__pycache__
