@@ -843,6 +843,15 @@ void CanManager::RegisterTxCompleteCallback(TxCompleteCallback callback) {
   impl_->RegisterTxCompleteCallback(callback);
 }
 
+bool CanManager::GetTermination() const {
+  return impl_->config_.termination;
+}
+
+void CanManager::SetTermination(bool enabled) {
+  impl_->config_.termination = enabled;
+  impl_->can_term_.write(enabled ? 0 : 1);
+}
+
 void CanManager::SetNominalTiming(const BitTiming& timing) {
   impl_->config_.rate.prescaler = timing.prescaler;
   impl_->config_.rate.sync_jump_width = timing.sync_jump_width;

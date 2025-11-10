@@ -80,6 +80,10 @@ class CanManager {
   // transmitted over the bus.
   void RegisterTxCompleteCallback(TxCompleteCallback callback);
 
+  // Termination resistor control
+  bool GetTermination() const;
+  void SetTermination(bool enabled);
+
   struct BitTiming {
     int prescaler = 0;
     int sync_jump_width = 0;

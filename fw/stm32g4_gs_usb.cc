@@ -650,15 +650,15 @@ class Stm32G4GsUsb::Impl {
     gs_device_termination_state term_state;
     std::memcpy(&term_state, req->data, sizeof(term_state));
 
-    // TODO: Actually handle termination changes.
+    can_manager_.SetTermination(term_state.state != 0);
     return usbd_ack;
   }
 
   usbd_respond HandleGetTermination(usbd_device* dev, usbd_ctlreq* req) {
     // GS_USB_BREQ_GET_TERMINATION - get termination state
 
-    // TODO: Actually handle retrieving the current termination state.
-    response_buffer_.termination_state.state = true;
+    response_buffer_.termination_state.state =
+        can_manager_.GetTermination() ? 1 : 0;
 
     dev->status.data_ptr = &response_buffer_.termination_state;
     dev->status.data_count = sizeof(response_buffer_.termination_state);
