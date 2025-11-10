@@ -165,22 +165,22 @@ class TestBasicCommunication(unittest.TestCase):
         test_data = bytes.fromhex('DEADBEEF')
 
         # Start capture FIRST
-        capture_proc = self.can_if.start_capture()
-        time.sleep(0.3)  # Let candump fully start
+        with self.can_if.start_capture() as capture_proc:
+            time.sleep(0.3)  # Let candump fully start
 
-        # Enable CAN on legacy device
-        self.legacy.can_on()
-        time.sleep(0.1)  # Let bus stabilize
+            # Enable CAN on legacy device
+            self.legacy.can_on()
+            time.sleep(0.1)  # Let bus stabilize
 
-        # Send frame from legacy CDC
-        self.legacy.can_send(test_id, test_data)
+            # Send frame from legacy CDC
+            self.legacy.can_send(test_id, test_data)
 
-        # Now wait for the frame
-        frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
+            # Now wait for the frame
+            frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
 
-        self.assertIsNotNone(frame, "No frame received on DUT gs_usb")
-        self.assertEqual(frame['can_id'], test_id, "CAN ID mismatch")
-        self.assertEqual(frame['data'], test_data, "Data payload mismatch")
+            self.assertIsNotNone(frame, "No frame received on DUT gs_usb")
+            self.assertEqual(frame['can_id'], test_id, "CAN ID mismatch")
+            self.assertEqual(frame['data'], test_data, "Data payload mismatch")
 
     def test_dut_gs_usb_to_legacy_cdc(self):
         """Test: DUT gs_usb sends frame → Legacy CDC receives it."""
@@ -396,20 +396,20 @@ class TestAdvancedGsUsbFeatures(unittest.TestCase):
         test_data = bytes(range(16))
 
         # Start capture
-        capture_proc = self.can_if.start_capture()
-        time.sleep(0.3)
+        with self.can_if.start_capture() as capture_proc:
+            time.sleep(0.3)
 
-        self.legacy.can_on()
-        time.sleep(0.1)
+            self.legacy.can_on()
+            time.sleep(0.1)
 
-        # Send CAN-FD frame
-        self.legacy.can_send(test_id, test_data)
+            # Send CAN-FD frame
+            self.legacy.can_send(test_id, test_data)
 
-        frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
+            frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
 
-        self.assertIsNotNone(frame, "No CAN-FD frame received")
-        self.assertEqual(frame['can_id'], test_id)
-        self.assertEqual(frame['data'], test_data)
+            self.assertIsNotNone(frame, "No CAN-FD frame received")
+            self.assertEqual(frame['can_id'], test_id)
+            self.assertEqual(frame['data'], test_data)
 
     def test_brs_frame_transmission(self):
         """Test CAN-FD frame with bitrate switching (BRS).
@@ -424,28 +424,28 @@ class TestAdvancedGsUsbFeatures(unittest.TestCase):
                     continue
 
                 # Start capture
-                capture_proc = self.can_if.start_capture()
-                time.sleep(0.3)
+                with self.can_if.start_capture() as capture_proc:
+                    time.sleep(0.3)
 
-                self.legacy.can_on()
-                time.sleep(0.1)
+                    self.legacy.can_on()
+                    time.sleep(0.1)
 
-                test_id = 0x340 + (1 if is_fd else 0) + (2 if is_brs else 0)
-                flags = ("B" if is_brs else "b") + ("F" if is_fd else "f")
+                    test_id = 0x340 + (1 if is_fd else 0) + (2 if is_brs else 0)
+                    flags = ("B" if is_brs else "b") + ("F" if is_fd else "f")
 
-                # Send CAN-FD frame with BRS
-                self.legacy.can_send(test_id, test_data, flags=flags)
+                    # Send CAN-FD frame with BRS
+                    self.legacy.can_send(test_id, test_data, flags=flags)
 
-                frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
+                    frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
 
-                self.assertIsNotNone(frame, "No BRS frame received")
-                self.assertEqual(frame['can_id'], test_id)
-                self.assertEqual(frame['data'], test_data)
-                self.assertEqual(frame['brs'], is_brs)
-                self.assertEqual(frame['fd'], is_fd)
+                    self.assertIsNotNone(frame, "No BRS frame received")
+                    self.assertEqual(frame['can_id'], test_id)
+                    self.assertEqual(frame['data'], test_data)
+                    self.assertEqual(frame['brs'], is_brs)
+                    self.assertEqual(frame['fd'], is_fd)
 
-                self.legacy.can_off()
-                time.sleep(0.1)
+                    self.legacy.can_off()
+                    time.sleep(0.1)
 
 
     def test_bitrate_configuration(self):
@@ -480,32 +480,32 @@ class TestAdvancedGsUsbFeatures(unittest.TestCase):
         test_data = b'\x11\x22\x33\x44'
 
         # Start capture
-        capture_proc = self.can_if.start_capture()
-        time.sleep(0.3)
+        with self.can_if.start_capture() as capture_proc:
+            time.sleep(0.3)
 
-        self.legacy.can_send(test_id, test_data)
+            self.legacy.can_send(test_id, test_data)
 
-        frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
-        self.legacy.can_off()
+            frame = self.can_if.wait_for_frame(capture_proc, timeout=2.0)
+            self.legacy.can_off()
 
-        # Restore original bitrates on legacy
-        self.legacy.send_command(f"conf set can.bitrate {CAN_BITRATE}")
-        self.legacy.send_command(f"conf set can.fd_bitrate {CAN_DBITRATE}")
+            # Restore original bitrates on legacy
+            self.legacy.send_command(f"conf set can.bitrate {CAN_BITRATE}")
+            self.legacy.send_command(f"conf set can.fd_bitrate {CAN_DBITRATE}")
 
-        self.assertIsNotNone(frame, "No frame received at new bitrate")
-        self.assertEqual(frame['can_id'], test_id)
+            self.assertIsNotNone(frame, "No frame received at new bitrate")
+            self.assertEqual(frame['can_id'], test_id)
 
-        # Restore original bitrates on can0
-        self.can_if.configure(
-            bitrate=CAN_BITRATE,
-            dbitrate=CAN_DBITRATE,
-            sjw=CAN_SJW,
-            dsjw=CAN_DSJW,
-            sample_point=CAN_SAMPLE_POINT,
-            dsample_point=CAN_DSAMPLE_POINT,
-            restart_ms=CAN_RESTART_MS,
-            fd=True
-        )
+            # Restore original bitrates on can0
+            self.can_if.configure(
+                bitrate=CAN_BITRATE,
+                dbitrate=CAN_DBITRATE,
+                sjw=CAN_SJW,
+                dsjw=CAN_DSJW,
+                sample_point=CAN_SAMPLE_POINT,
+                dsample_point=CAN_DSAMPLE_POINT,
+                restart_ms=CAN_RESTART_MS,
+                fd=True
+            )
 
 
 class TestLargeFrames(unittest.TestCase):
@@ -544,7 +544,6 @@ class TestLargeFrames(unittest.TestCase):
         self.legacy.send_command("conf set can.bitrate 1000000")
         self.legacy.send_command("conf set can.fd_bitrate 5000000")
         self.legacy.ensure_bus_off()
-
 
     def test_large_frames(self):
         """Verify 48 and 64 byte frames can be sent between all interfaces"""
@@ -622,6 +621,124 @@ class TestLargeFrames(unittest.TestCase):
                 dut_cdc_manager.__exit__(None, None, None)
                 dut_cdc_manager = None
                 dut_cdc = None
+
+            if capture_proc:
+                capture_proc.__exit__(None, None, None)
+
+
+class TestBufferOverflow(unittest.TestCase):
+    """Test sending data to the DUT when one or the other of the
+    gs_usb or CDC interface is not open at all.  The one that is open
+    should function normally even for a large number of frames.
+
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """One-time setup for the test class."""
+        cls.legacy_cdc_path = find_device_by_serial(LEGACY_CDC_SERIAL)
+        cls.dut_cdc_path = find_device_by_serial(DUT_CDC_SERIAL)
+        cls.can_if = CanInterface(DUT_CAN_INTERFACE)
+
+    def setUp(self):
+        """Per-test setup."""
+        self.legacy_manager = FdcanUsbDevice(self.legacy_cdc_path)
+        self.legacy = self.legacy_manager.__enter__()
+        self.legacy.send_command("conf set can.bitrate 1000000")
+        self.legacy.send_command("conf set can.fd_bitrate 5000000")
+        self.legacy.ensure_bus_off()
+        time.sleep(0.1)
+
+    def do_send_test(self, receive_frame):
+        FRAMES_TO_SEND = 500
+
+        frames_received = 0
+
+        test_id_base = 0x500
+        test_data = bytes(range(64))
+
+        for i in range(FRAMES_TO_SEND):
+            test_id = test_id_base + (i % 256)  # Cycle through IDs
+
+            # Read any pending frames.
+            if i % 10 == 0:
+                while True:
+                    frame = receive_frame()
+                    if frame is None:
+                        break
+                    frames_received += 1
+
+            self.legacy.can_send(test_id, test_data)
+
+            time.sleep(0.005) # 5ms between frames
+
+        # Collect any remaining frames.
+        time.sleep(1.0)
+        timeout_count = 0
+        while timeout_count < 5:
+            frame = receive_frame()
+            if frame is None:
+                timeout_count += 1
+            else:
+                frames_received += 1
+                timeout_count = 0
+
+        self.assertEqual(frames_received, FRAMES_TO_SEND)
+
+    def test_gs_usb_overflow(self):
+        # Only bring up the DUT CDC device, then send large numbers of
+        # frames ensuring they all arrive.
+        with FdcanUsbDevice(self.dut_cdc_path) as dut:
+            dut.send_command("conf set can.bitrate 1000000")
+            dut.send_command("conf set can.fd_bitrate 5000000")
+            dut.ensure_bus_off()
+
+            time.sleep(0.1)
+
+            dut.can_on()
+            self.legacy.can_on()
+
+            time.sleep(0.1)
+
+            self.do_send_test(lambda: dut.wait_for_frame(timeout=0.01))
+
+            dut.can_off()
+
+        self.legacy.can_off()
+
+    def test_cdc_overflow(self):
+        # Only bring up the gs_usb device, then send large numbers of
+        # frames.
+
+        can_if = CanInterface(DUT_CAN_INTERFACE)
+
+        # Bring down if already up
+        if can_if.is_up():
+            can_if.bring_down()
+
+        # Configure with legacy device parameters
+        can_if.configure(
+            bitrate=CAN_BITRATE,
+            dbitrate=CAN_DBITRATE,
+            sjw=CAN_SJW,
+            dsjw=CAN_DSJW,
+            sample_point=CAN_SAMPLE_POINT,
+            dsample_point=CAN_DSAMPLE_POINT,
+            restart_ms=CAN_RESTART_MS,
+            fd=True
+        )
+
+        self.legacy.can_on()
+
+        time.sleep(0.1)
+
+        with can_if.start_capture(limit=None) as capture_proc:
+            time.sleep(0.2)
+
+            self.do_send_test(
+                lambda: can_if.wait_for_frame(capture_proc, timeout=0.02))
+
+            self.legacy.can_off()
 
 
 if __name__ == '__main__':

@@ -23,8 +23,140 @@ import re
 import select
 import serial
 import subprocess
+import sys
 import time
 from typing import Optional, List, Tuple, Dict
+
+import subprocess
+import threading
+import queue
+
+import subprocess
+import threading
+import queue
+
+
+class PopenWithTimeout:
+    """Wrapper around subprocess.Popen that allows reading stdout with timeout."""
+
+    def __init__(self, *args, **kwargs):
+        # Force stdout to be a PIPE
+        kwargs['stdout'] = subprocess.PIPE
+
+        # Recommended settings for line-based reading
+        if 'text' not in kwargs and 'universal_newlines' not in kwargs:
+            kwargs['text'] = True
+        if 'bufsize' not in kwargs:
+            kwargs['bufsize'] = 1  # Line buffered
+
+        self._process = subprocess.Popen(*args, **kwargs)
+        self._queue = queue.Queue()
+        self._thread = None
+        self._eof_reached = False
+        self._start_reading_thread()
+
+    def _start_reading_thread(self):
+        """Start background thread to read stdout."""
+        def enqueue_lines():
+            try:
+                for line in self._process.stdout:
+                    self._queue.put(('line', line))
+            except Exception as e:
+                self._queue.put(('error', e))
+            finally:
+                self._queue.put(('eof', None))
+
+        self._thread = threading.Thread(target=enqueue_lines, daemon=True)
+        self._thread.start()
+
+    def stdout_readline(self, timeout=None):
+        """
+        Read a line from stdout with optional timeout.
+
+        Args:
+            timeout: Timeout in seconds, or None for no timeout
+
+        Returns:
+            The line as a string, or None if EOF reached
+
+        Raises:
+            TimeoutError: If timeout expires before a line is available
+            Exception: If an error occurred while reading
+        """
+        if self._eof_reached:
+            return None
+
+        try:
+            msg_type, data = self._queue.get(timeout=timeout)
+
+            if msg_type == 'line':
+                return data
+            elif msg_type == 'eof':
+                self._eof_reached = True
+                return None
+            elif msg_type == 'error':
+                raise data
+        except queue.Empty:
+            return None
+
+    def close(self):
+        """Clean up the process and ensure thread terminates."""
+        # Kill the process if still running
+        if self.poll() is None:
+            self.kill()
+
+        # Close stdout to unblock the reading thread
+        if self._process.stdout and not self._process.stdout.closed:
+            self._process.stdout.close()
+
+        if self._process.stderr and not self._process.stderr.closed:
+            self._process.stderr.close()
+
+        # Wait for process to finish
+        self.wait()
+
+        # Wait for thread to finish (should be quick now that stdout is closed)
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=1.0)
+
+    # Delegate common Popen methods/attributes
+    def poll(self):
+        return self._process.poll()
+
+    def wait(self, timeout=None):
+        return self._process.wait(timeout=timeout)
+
+    def kill(self):
+        return self._process.kill()
+
+    def terminate(self):
+        return self._process.terminate()
+
+    def send_signal(self, signal):
+        return self._process.send_signal(signal)
+
+    @property
+    def returncode(self):
+        return self._process.returncode
+
+    @property
+    def pid(self):
+        return self._process.pid
+
+    @property
+    def stdin(self):
+        return self._process.stdin
+
+    @property
+    def stderr(self):
+        return self._process.stderr
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False
 
 
 class FdcanUsbDevice:
@@ -431,7 +563,7 @@ class CanInterface:
             check=True
         )
 
-    def start_capture(self, filter_id: Optional[int] = None):
+    def start_capture(self, limit=1, filter_id: Optional[int] = None):
         """
         Start capturing CAN frames in the background.
 
@@ -448,13 +580,17 @@ class CanInterface:
         else:
             ifspec = self.ifname
 
-        cmd = ['candump', '-x', '-n', '1', ifspec]
+        cmd = ['candump', '-r', '1000000', '-x']
+        if limit is not None:
+            cmd += ['-n', str(limit)]
+        cmd += [ifspec]
 
-        process = subprocess.Popen(
+        process = PopenWithTimeout(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            bufsize=1,
         )
         return process
 
@@ -470,9 +606,9 @@ class CanInterface:
             Dictionary with frame data or None if timeout
         """
         try:
-            stdout, stderr = process.communicate(timeout=timeout)
+            stdout = process.stdout_readline(timeout=timeout)
 
-            if process.returncode != 0:
+            if process.returncode is not None and process.returncode != 0:
                 return None
 
             if not stdout:
@@ -506,7 +642,6 @@ class CanInterface:
             }
 
         except subprocess.TimeoutExpired:
-            process.kill()
             return None
 
     def __enter__(self):
