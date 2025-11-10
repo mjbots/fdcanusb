@@ -84,6 +84,10 @@ class CanManager {
   bool GetTermination() const;
   void SetTermination(bool enabled);
 
+  // Automatic retransmission control (one-shot mode)
+  bool GetAutomaticRetransmission() const;
+  void SetAutomaticRetransmission(bool enabled);
+
   struct BitTiming {
     int prescaler = 0;
     int sync_jump_width = 0;

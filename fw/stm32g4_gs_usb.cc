@@ -586,7 +586,8 @@ class Stm32G4GsUsb::Impl {
 
     mode_flags_ = mode.flags;
 
-    // TODO: Actually handle mode flag changes.
+    // Handle one-shot mode (disable automatic retransmission)
+    can_manager_.SetAutomaticRetransmission(!new_one_shot);
 
     // Control bus state based on MODE_START flag
     const bool should_start = (mode.mode & GS_CAN_MODE_START) != 0;
