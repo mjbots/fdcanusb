@@ -860,6 +860,14 @@ void CanManager::SetAutomaticRetransmission(bool enabled) {
   impl_->config_.automatic_retransmission = enabled;
 }
 
+bool CanManager::GetBusMonitor() const {
+  return impl_->config_.bus_monitor;
+}
+
+void CanManager::SetBusMonitor(bool enabled) {
+  impl_->config_.bus_monitor = enabled;
+}
+
 void CanManager::SetNominalTiming(const BitTiming& timing) {
   impl_->config_.rate.prescaler = timing.prescaler;
   impl_->config_.rate.sync_jump_width = timing.sync_jump_width;

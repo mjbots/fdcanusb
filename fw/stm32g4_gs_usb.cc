@@ -589,6 +589,9 @@ class Stm32G4GsUsb::Impl {
     // Handle one-shot mode (disable automatic retransmission)
     can_manager_.SetAutomaticRetransmission(!new_one_shot);
 
+    // Handle listen-only mode (bus monitor)
+    can_manager_.SetBusMonitor(new_listen_only);
+
     // Control bus state based on MODE_START flag
     const bool should_start = (mode.mode & GS_CAN_MODE_START) != 0;
 

@@ -88,6 +88,10 @@ class CanManager {
   bool GetAutomaticRetransmission() const;
   void SetAutomaticRetransmission(bool enabled);
 
+  // Bus monitor control (listen-only mode)
+  bool GetBusMonitor() const;
+  void SetBusMonitor(bool enabled);
+
   struct BitTiming {
     int prescaler = 0;
     int sync_jump_width = 0;
