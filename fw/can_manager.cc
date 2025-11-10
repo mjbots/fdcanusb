@@ -46,6 +46,7 @@ struct Config {
   bool bitrate_switch = true;
   bool restricted_mode = false;
   bool bus_monitor = false;
+  bool loopback = false;
   bool termination = true;
   bool autostart = true;
   bool autorecover = false;
@@ -137,6 +138,7 @@ struct Config {
     a->Visit(MJ_NVP(bitrate_switch));
     a->Visit(MJ_NVP(restricted_mode));
     a->Visit(MJ_NVP(bus_monitor));
+    a->Visit(MJ_NVP(loopback));
     a->Visit(MJ_NVP(termination));
     a->Visit(MJ_NVP(autostart));
     a->Visit(MJ_NVP(autorecover));
@@ -549,6 +551,7 @@ class CanManager::Impl {
         options.bitrate_switch = config_.bitrate_switch;
         options.restricted_mode = config_.restricted_mode;
         options.bus_monitor = config_.bus_monitor;
+        options.loopback = config_.loopback;
         options.delay_compensation = config_.delay_compensation;
         options.tdc_offset = config_.tdc_offset;
         options.tdc_filter = config_.tdc_filter;
@@ -866,6 +869,26 @@ bool CanManager::GetBusMonitor() const {
 
 void CanManager::SetBusMonitor(bool enabled) {
   impl_->config_.bus_monitor = enabled;
+}
+
+bool CanManager::GetLoopback() const {
+  return impl_->config_.loopback;
+}
+
+void CanManager::SetLoopback(bool enabled) {
+  impl_->config_.loopback = enabled;
+}
+
+CanManager::ErrorCounters CanManager::GetErrorCounters() {
+  if (!impl_->can_) { return {}; }
+
+  const auto error_counters = impl_->can_->error_counters();
+
+  ErrorCounters result;
+  result.tx_error_count = error_counters.TxErrorCnt;
+  result.rx_error_count = error_counters.RxErrorCnt;
+
+  return result;
 }
 
 void CanManager::SetNominalTiming(const BitTiming& timing) {

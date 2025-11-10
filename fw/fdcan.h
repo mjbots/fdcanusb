@@ -71,6 +71,7 @@ class FDCan {
     bool bitrate_switch = false;
     bool restricted_mode = false;
     bool bus_monitor = false;
+    bool loopback = false;
 
     bool delay_compensation = false;
     uint32_t tdc_offset = 0;
@@ -128,6 +129,7 @@ class FDCan {
   void RecoverBusOff();
 
   FDCAN_ProtocolStatusTypeDef status();
+  FDCAN_ErrorCountersTypeDef error_counters();
 
   bool tx_queue_full() {
     return (can_->TXFQS & FDCAN_TXFQS_TFQF) != 0;

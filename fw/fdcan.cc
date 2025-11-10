@@ -119,7 +119,9 @@ FDCan::FDCan(const Options& options)
     return FDCAN_FRAME_CLASSIC;
   }();
   can.Init.Mode = [&]() {
-    if (options.bus_monitor) {
+    if (options.loopback) {
+      return FDCAN_MODE_INTERNAL_LOOPBACK;
+    } else if (options.bus_monitor) {
       return FDCAN_MODE_BUS_MONITORING;
     } else if (options.restricted_mode) {
       return FDCAN_MODE_RESTRICTED_OPERATION;
@@ -373,6 +375,12 @@ void FDCan::RecoverBusOff() {
 FDCAN_ProtocolStatusTypeDef FDCan::status() {
   FDCAN_ProtocolStatusTypeDef result = {};
   HAL_FDCAN_GetProtocolStatus(&hfdcan1_, &result);
+  return result;
+}
+
+FDCAN_ErrorCountersTypeDef FDCan::error_counters() {
+  FDCAN_ErrorCountersTypeDef result = {};
+  HAL_FDCAN_GetErrorCounters(&hfdcan1_, &result);
   return result;
 }
 

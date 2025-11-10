@@ -92,6 +92,17 @@ class CanManager {
   bool GetBusMonitor() const;
   void SetBusMonitor(bool enabled);
 
+  // Loopback mode control (internal loopback for testing)
+  bool GetLoopback() const;
+  void SetLoopback(bool enabled);
+
+  // Error counter access
+  struct ErrorCounters {
+    uint8_t rx_error_count;  // Receive error counter
+    uint8_t tx_error_count;  // Transmit error counter
+  };
+  ErrorCounters GetErrorCounters();
+
   struct BitTiming {
     int prescaler = 0;
     int sync_jump_width = 0;

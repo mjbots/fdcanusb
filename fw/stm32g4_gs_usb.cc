@@ -67,6 +67,7 @@ constexpr uint32_t SUPPORTED_FEATURES =
     GS_CAN_FEATURE_BT_CONST_EXT |
     GS_CAN_FEATURE_IDENTIFY |
     GS_CAN_FEATURE_TERMINATION |
+    GS_CAN_FEATURE_GET_STATE |
     0;
 
 }  // namespace
@@ -592,6 +593,9 @@ class Stm32G4GsUsb::Impl {
     // Handle listen-only mode (bus monitor)
     can_manager_.SetBusMonitor(new_listen_only);
 
+    // Handle loopback mode (internal loopback for testing)
+    can_manager_.SetLoopback(new_loopback);
+
     // Control bus state based on MODE_START flag
     const bool should_start = (mode.mode & GS_CAN_MODE_START) != 0;
 
@@ -678,7 +682,10 @@ class Stm32G4GsUsb::Impl {
       response_buffer_.device_state.state = GS_CAN_STATE_STOPPED;
     }
 
-    // TODO: Get actual error counters from CAN controller
+    // Get actual error counters from CAN controller
+    const auto error_counters = can_manager_.GetErrorCounters();
+    response_buffer_.device_state.rxerr = error_counters.rx_error_count;
+    response_buffer_.device_state.txerr = error_counters.tx_error_count;
 
     dev->status.data_ptr = &response_buffer_.device_state;
     dev->status.data_count = sizeof(response_buffer_.device_state);
