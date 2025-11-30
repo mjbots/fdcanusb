@@ -1,23 +1,18 @@
+common --noenable_bzlmod
+build --incompatible_enable_cc_toolchain_resolution
+
+build --features=c++20
+build --features=-c++17
 build --compiler=compiler
-test --compiler=compiler
-
-build --cpu=stm32g4
-test --cpu=stm32g4
-
-build --crosstool_top=@com_github_mjbots_rules_mbed//tools/cc_toolchain:toolchain
-test --crosstool_top=@com_github_mjbots_rules_mbed//tools/cc_toolchain:toolchain
-
-build --auto_cpu_environment_group=@com_github_mjbots_rules_mbed//tools:cpus
-test --auto_cpu_environment_group=@com_github_mjbots_rules_mbed//tools:cpus
 
 build --nostart_end_lib
-test --nostart_end_lib
-
-build -c opt
-test -c opt
+build --strip never
+build --test_output=errors
 
 build --workspace_status_command=tools/workspace_status.sh
-test --workspace_status_command=tools/workspace_status.sh
-
+build -c opt
 build --stamp
-test --stamp
+
+build --platforms=@com_github_mjbots_rules_mbed//:stm32g4
+build --crosstool_top=@com_github_mjbots_rules_mbed//tools/cc_toolchain:toolchain
+build --cpu=stm32g4
