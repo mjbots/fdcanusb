@@ -4,7 +4,7 @@ The fdcanusb provides a USB 2.0 full speed interface to an FDCAN bus.  It presen
 
 The designs and firmware are licensed under the Apache 2.0 License.
 
- * [![Build Status](https://travis-ci.org/mjbots/fdcanusb.svg?branch=master)](https://travis-ci.org/mjbots/fdcanusb)
+ * [![CI Status](https://github.com/mjbots/fdcanusb/actions/workflows/ci.yml/badge.svg)](https://github.com/mjbots/fdcanusb/actions/workflows/ci.yml)
 
 Pre-assembled hardware can be purchased at https://mjbots.com/products/fdcanusb
 
