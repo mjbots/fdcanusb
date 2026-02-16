@@ -459,6 +459,13 @@ class Stm32G4AsyncUsbCdc::Impl {
       current_write_callback_ = {};
       current_write_data_ = {};
 
+      // If the TX endpoint is idle and we now have data, arm it.
+      if (tx_idle_ && buffer_.size > 0) {
+        tx_idle_ = false;
+        usbd_ep_write(&udev_, CDC_TXD_EP, &buffer_.buf[0], buffer_.size);
+        buffer_.size = 0;
+      }
+
       copy(micro::error_code(), to_write);
     }
   }
@@ -616,8 +623,11 @@ class Stm32G4AsyncUsbCdc::Impl {
     last_cdc_activity_us_ = options_.timer->read_us();
 
     if (buffer_.size == 0) {
-      // Write nothing.
-      usbd_ep_write(&udev_, ep, fifo_, 0);
+      // We have no data to send.  Leave the endpoint in the NAK state
+      // so the hardware automatically NAKs IN tokens without
+      // generating further callbacks.  ProcessWrite will re-arm the
+      // endpoint when data becomes available.
+      tx_idle_ = true;
       return;
     }
 
@@ -682,6 +692,7 @@ private:
   };
 
   Buffer buffer_;
+  bool tx_idle_ = true;
 
   micro::SizeCallback current_read_callback_;
   mjlib::base::string_span current_read_data_;
