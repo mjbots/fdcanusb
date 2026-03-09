@@ -1,6 +1,10 @@
-# fdcanusb #
+# mjcanfd-usb-1x / fdcanusb
 
-The fdcanusb provides a USB 2.0 full speed interface to an FDCAN bus.  It presents a serial-like interface over the USB port using the CDC ACM class, i.e. a virtual COM port.
+The mjcanfd-usb-1x and fdcanusb provide access to a CAN-FD bus using a
+USB 2.0 full speed connection.  They present two possible interfaces:
+
+1. A `gs_usb` interface compatible with the Linux kernel `gs_usb` socketcan driver
+2. serial-like interface over the USB port using the CDC ACM class, i.e. a virtual COM port.
 
 The designs and firmware are licensed under the Apache 2.0 License.
 
@@ -8,22 +12,18 @@ The designs and firmware are licensed under the Apache 2.0 License.
 
 Pre-assembled hardware can be purchased at https://mjbots.com/products/fdcanusb
 
-# Building #
+## Usage with moteus tools and libraries
 
-To build on an Ubuntu 22.04 or newer system.
+To use a device with moteus tools or libraries, first install the
+relevant udev rule following the instructions in the top of the file:
 
-```
-sudo apt install curl openocd
-./tools/bazel build //fw:fdcanusb.bin
-```
+* [70-fdcanusb.rules](70-fdcanusb.rules)
 
-To flash:
+Second, just use the application.  moteus utilities like
+`moteus_tool`, `tview`, and the python and C++ libraries will
+automatically discover any connected devices and use the CDC protocol.
 
-```
-./flash.sh
-```
-
-# Protocol #
+## USB CDC Protocol
 
 Each command or response is a single newline terminated line, composed
 of 7-bit ASCII encoded characters.  Every command sent from the client
@@ -31,7 +31,7 @@ to the device has a response which consists of an optional command
 specific response followed by a final line consisting solely of `OK` or
 `ERR <details>`.
 
-## States ##
+### States
 
 The device can be in one of two states.
 
@@ -41,23 +41,23 @@ no frames may be sent or received, but the device may be configured.
 2. *Bus On*: In this state frames may be sent and received, but
 configuration is locked out.
 
-# Commands #
+## Commands
 
 Sample commands are prefixed with `>` to show the data sent from the
 client to the device and `<` to show the values sent from the device
 to the client.  Those characters are for illustrative purposes only,
 and are not present in actual communications.
 
-## *conf* ##
+### *conf*
 
 The "conf" command is used to read and set configuration values.  It
 has several subcommands.
 
-### *conf enumerate* ###
+#### *conf enumerate*
 
 This emits all current configuration values one after another.
 
-### *conf get* ###
+#### *conf get*
 
 This queries the value of one specific configuration item.
 
@@ -67,7 +67,7 @@ This queries the value of one specific configuration item.
 <OK
 ```
 
-### *conf set* ###
+#### *conf set*
 
 This sets the value of one specific configuration itme.
 
@@ -76,7 +76,7 @@ This sets the value of one specific configuration itme.
 <OK
 ```
 
-### *conf load* ###
+#### *conf load*
 
 This loads all persistent configuration from the persistent storage.
 
@@ -85,7 +85,7 @@ This loads all persistent configuration from the persistent storage.
 <OK
 ```
 
-### *conf write* ###
+#### *conf write*
 
 This stores all configuration values to persistent storage.  They will
 then be the default when the device is powered on the in the future.
@@ -95,7 +95,7 @@ then be the default when the device is powered on the in the future.
 <OK
 ```
 
-### *conf default* ###
+#### *conf default*
 
 Reset all configuration values to their "default" state.
 
@@ -104,20 +104,20 @@ Reset all configuration values to their "default" state.
 <OK
 ```
 
-## can ##
+### can
 
-### *can on* ###
+#### *can on*
 
 Enter the "Bus On" state.  All configurable values are validated and
 put into place.  This results in an error if the device is already in
 the "Bus On" state.
 
-### *can off* ###
+#### *can off*
 
 Enter the "Bus Off" state.  Transmission and reception of CAN messages
 is halted, and configurable values may be changed.
 
-### *can std* ###
+#### *can std*
 
 Send a standard CAN frame.  The following format is used.
 
@@ -131,7 +131,7 @@ spaces.
 3. *R/r* require/disable remote frame
 
 
-### *can ext* ###
+#### *can ext*
 
 Send an extended CAN frame.  The following format is used.
 
@@ -139,11 +139,11 @@ Send an extended CAN frame.  The following format is used.
 
 The allowable options are the same as for `can std`.
 
-### *can send* ###
+#### *can send*
 
 Just like `std` or `ext`, but auto-detect the ID type.
 
-### *can status* ###
+#### *can status*
 
 Report the current mode and status of various flags.
 
@@ -153,12 +153,12 @@ Report the current mode and status of various flags.
 <OK
 ```
 
-# Receiving CAN Frames #
+### Receiving CAN Frames
 
 When in the "Bus On" state, the device may spontaneously emit the
 following lines upon receipt of valid CAN frames or other errors.
 
-## *rcv* ##
+#### *rcv*
 
 A CAN frame has been received.
 
@@ -175,7 +175,7 @@ A CAN frame has been received.
 4. tNNNNN timestamp of receipt measured in microseconds
 5. fNN integer ID of which filter matched this frame
 
-# Configurable Values #
+### Configurable Values
 
 The following items may be configured.
 
@@ -220,3 +220,36 @@ The following items may be configured.
   * 0 - disable
   * 1 - accept
   * 2 - reject
+
+## gs_usb interface
+
+To use the device with a socketcan driver on Linux, the normal socketcan utilities can be used.  For instance, to bring up an interface compatible with moteus (not usually required because moteus tools and libraries will by default use the CDC interface), you would do:
+
+```bash
+ip link set can0 up type can \
+  bitrate 1000000 dbitrate 5000000 \
+  sjw 10 dsjw 5 \
+  sample-point 0.666 dsample-point 0.666 \
+  restart-ms 1000 fd on
+```
+
+Then, all messages received can be displayed with:
+
+```bash
+candump can0
+```
+
+## Building firmware
+
+To build the firmware on an Ubuntu 22.04 or newer system.
+
+```
+sudo apt install curl openocd
+./tools/bazel build //...
+```
+
+To flash:
+
+```
+./flash.py
+```
