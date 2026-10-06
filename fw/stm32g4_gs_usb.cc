@@ -303,15 +303,7 @@ class Stm32G4GsUsb::Impl {
     host_frame.reserved = 0;
     std::memcpy(host_frame.data, frame.data, std::min<size_t>(frame.size, 64));
 
-    // Append timestamp after data (if timer available)
-    // Timestamp is written to data[GetDataLength()], which is safe because
-    // data[] is 68 bytes (64 for CAN data + 4 for timestamp)
-    if (options_.timer) {
-      const uint32_t timestamp_us = options_.timer->read_us();
-      const uint8_t data_len = FDCan::DlcToSize(host_frame.can_dlc);
-      // Write timestamp as little-endian uint32_t after data
-      std::memcpy(&host_frame.data[data_len], &timestamp_us, sizeof(timestamp_us));
-    }
+    SetTimestamp(host_frame);
 
     // Queue the frame for Poll() to send
     __disable_irq();
@@ -336,6 +328,7 @@ class Stm32G4GsUsb::Impl {
       if (pending_tx_frames_[i].echo_id == echo_id) {
         echo_frame = pending_tx_frames_[i].frame;
         echo_frame.echo_id = echo_id;  // Ensure echo_id is set
+        SetTimestamp(echo_frame);
         found = true;
 
         // Remove from array by shifting remaining elements
@@ -382,14 +375,7 @@ class Stm32G4GsUsb::Impl {
     // Copy to persistent buffer (USB DMA may access asynchronously)
     tx_frame_ = frame;
 
-    // Calculate actual frame size (header + data bytes + optional timestamp)
-    // Header: 12 bytes (echo_id(4) + can_id(4) + can_dlc(1) + channel(1) + flags(1) + reserved(1))
-    // Data: GetDataLength() bytes
-    // Timestamp: 4 bytes (if HW_TIMESTAMP feature enabled and timer available)
-    tx_frame_total_size_ = 12 + FDCan::DlcToSize(tx_frame_.can_dlc);
-    if (options_.timer) {
-      tx_frame_total_size_ += 4;  // Add timestamp size
-    }
+    tx_frame_total_size_ = HostFrameSize(tx_frame_);
 
     // For frames > 64 bytes, we need multi-packet transfer
     // Send first chunk (up to 64 bytes), HandleTxEndpoint will continue
@@ -410,6 +396,34 @@ class Stm32G4GsUsb::Impl {
       tx_frame_bytes_sent_ = 0;
       tx_frame_total_size_ = 0;
     }
+  }
+
+  // The Linux gs_usb driver (and candleLight) use fixed size records
+  // regardless of the DLC: the data field is always 8 bytes for
+  // classic frames and 64 bytes for FD frames, with the optional
+  // timestamp immediately after.  Recent kernels (CVE-2025-68342 fix)
+  // drop any record shorter than this.
+  bool TimestampsEnabled() const {
+    return options_.timer && (mode_flags_ & GS_CAN_MODE_HW_TIMESTAMP);
+  }
+
+  static uint8_t DataFieldSize(const gs_host_frame& frame) {
+    return (frame.flags & GS_CAN_FLAG_FD) ? 64 : 8;
+  }
+
+  uint16_t HostFrameSize(const gs_host_frame& frame) const {
+    // Header: 12 bytes (echo_id(4) + can_id(4) + can_dlc(1) + channel(1) + flags(1) + reserved(1))
+    return 12 + DataFieldSize(frame) + (TimestampsEnabled() ? 4 : 0);
+  }
+
+  void SetTimestamp(gs_host_frame& frame) const {
+    if (!TimestampsEnabled()) { return; }
+
+    // For FD frames this is frame.timestamp_us; for classic frames it
+    // is data[8..11].
+    const uint32_t timestamp_us = options_.timer->read_us();
+    std::memcpy(&frame.data[DataFieldSize(frame)],
+                &timestamp_us, sizeof(timestamp_us));
   }
 
   void PollMillisecond() {

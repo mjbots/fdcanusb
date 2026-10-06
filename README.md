@@ -230,7 +230,7 @@ ip link set can0 up type can \
   bitrate 1000000 dbitrate 5000000 \
   sjw 10 dsjw 5 \
   sample-point 0.666 dsample-point 0.666 \
-  restart-ms 1000 fd on
+  fd on
 ```
 
 Then, all messages received can be displayed with:
